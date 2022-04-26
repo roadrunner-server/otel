@@ -3,13 +3,19 @@ package otel
 import (
 	"context"
 	"net/http"
+	"runtime"
+	"sync"
+	"time"
 
 	"github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/sdk/v2/utils"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -22,10 +28,11 @@ const (
 )
 
 type Plugin struct {
-	cfg    *Config
-	log    *zap.Logger
-	tracer trace.Tracer
-	client otlptrace.Client
+	cfg     *Config
+	log     *zap.Logger
+	once    sync.Once
+	tracer  *sdktrace.TracerProvider
+	handler http.Handler
 }
 
 func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
@@ -43,28 +50,105 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	p.log = &zap.Logger{}
 	*p.log = *log
 
-	p.client = otlptracehttp.NewClient()
-	p.tracer = otel.GetTracerProvider().Tracer("foo", trace.WithInstrumentationVersion("v0.1.0"), trace.WithSchemaURL(semconv.SchemaURL))
-	exporter, err := otlptrace.New(context.Background(), p.client)
-	tracerProvider := sdktrace.NewTracerProvider(
+	var exporter sdktrace.SpanExporter
+	switch p.cfg.Exporter {
+	case "stdout":
+		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
+		if err != nil {
+			return err
+		}
+	case "zipkin":
+		exporter, err = zipkin.New(p.cfg.Endpoint)
+		if err != nil {
+			return err
+		}
+	default:
+		options := make([]otlptracehttp.Option, 0, 5)
+		if p.cfg.Insecure {
+			options = append(options, otlptracehttp.WithInsecure())
+		}
+		if p.cfg.Compress {
+			options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
+		}
+
+		if p.cfg.CustomURL != "" {
+			options = append(options, otlptracehttp.WithURLPath(p.cfg.CustomURL))
+		}
+
+		options = append(options, otlptracehttp.WithEndpoint(p.cfg.Endpoint))
+		options = append(options, otlptracehttp.WithHeaders(p.cfg.Headers))
+		client := otlptracehttp.NewClient(options...)
+		// 1 min timeout
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		exporter, err = otlptrace.New(ctx, client)
+		if err != nil {
+			return err
+		}
+	}
+
+	p.tracer = sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(newResource()),
+		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion)),
 	)
 
-	otel.SetTracerProvider(tracerProvider)
+	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	//ctx, span := tracer.Start()
-	return otelhttp.NewHandler(next, "rr-request")
+	p.once.Do(func() {
+		p.handler = otelhttp.NewHandler(next, p.cfg.Operation, otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents))
+	})
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch p.cfg.Exporter {
+		case "zipkin":
+			ctx, span := p.tracer.Tracer(p.cfg.ServiceName).Start(r.Context(), "otel_rr_root", trace.WithNewRoot(), trace.WithSpanKind(trace.SpanKindServer))
+			defer span.End()
+			ctx = context.WithValue(ctx, utils.OtelTracerNameKey, p.cfg.ServiceName)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		default:
+			p.handler.ServeHTTP(w, r)
+		}
+	})
+
+	return handler
 }
 
-func newResource() *resource.Resource {
+func (p *Plugin) Serve() chan error {
+	return make(chan error, 1)
+}
+
+func (p *Plugin) Stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	err := p.tracer.ForceFlush(ctx)
+	if err != nil {
+		return err
+	}
+
+	ctx2, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	err = p.tracer.Shutdown(ctx2)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Plugin) Name() string {
+	return name
+}
+
+func newResource(serviceName, serviceVersion string) *resource.Resource {
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,
-		semconv.ServiceNameKey.String("otlptrace-example"),
-		semconv.ServiceVersionKey.String("0.0.1"),
+		semconv.OSNameKey.String(runtime.GOOS),
+		semconv.ServiceNameKey.String(serviceName),
+		semconv.ServiceVersionKey.String(serviceVersion),
 	)
 }
