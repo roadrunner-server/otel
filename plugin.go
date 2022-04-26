@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/zipkin"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -28,11 +29,12 @@ const (
 )
 
 type Plugin struct {
-	cfg     *Config
-	log     *zap.Logger
-	once    sync.Once
-	tracer  *sdktrace.TracerProvider
-	handler http.Handler
+	cfg         *Config
+	log         *zap.Logger
+	once        sync.Once
+	tracer      *sdktrace.TracerProvider
+	propagators propagation.TextMapPropagator
+	handler     http.Handler
 }
 
 func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
@@ -50,19 +52,20 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	p.log = &zap.Logger{}
 	*p.log = *log
 
+	p.cfg.InitDefault()
 	var exporter sdktrace.SpanExporter
-	switch p.cfg.Exporter {
-	case "stdout":
+	switch Exporter(p.cfg.Exporter) {
+	case stdout:
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
 		if err != nil {
 			return err
 		}
-	case "zipkin":
+	case zipkinExp:
 		exporter, err = zipkin.New(p.cfg.Endpoint)
 		if err != nil {
 			return err
 		}
-	default:
+	case otlp:
 		options := make([]otlptracehttp.Option, 0, 5)
 		if p.cfg.Insecure {
 			options = append(options, otlptracehttp.WithInsecure())
@@ -85,6 +88,8 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		if err != nil {
 			return err
 		}
+	default:
+		return errors.Errorf("unknown exporter: %s", p.cfg.Exporter)
 	}
 
 	p.tracer = sdktrace.NewTracerProvider(
@@ -93,6 +98,7 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion)),
 	)
 
+	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
@@ -100,22 +106,21 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	p.once.Do(func() {
-		p.handler = otelhttp.NewHandler(next, p.cfg.Operation, otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents))
+		p.handler = otelhttp.NewHandler(next, "",
+			otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
+				return r.RequestURI
+			}),
+			otelhttp.WithSpanOptions(
+				trace.WithNewRoot(),
+				trace.WithSpanKind(trace.SpanKindServer)),
+			otelhttp.WithPropagators(p.propagators),
+			otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents))
 	})
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch p.cfg.Exporter {
-		case "zipkin":
-			ctx, span := p.tracer.Tracer(p.cfg.ServiceName).Start(r.Context(), "otel_rr_root", trace.WithNewRoot(), trace.WithSpanKind(trace.SpanKindServer))
-			defer span.End()
-			ctx = context.WithValue(ctx, utils.OtelTracerNameKey, p.cfg.ServiceName)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		default:
-			p.handler.ServeHTTP(w, r)
-		}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), utils.OtelTracerNameKey, p.cfg.ServiceName)
+		p.handler.ServeHTTP(w, r.WithContext(ctx))
 	})
-
-	return handler
 }
 
 func (p *Plugin) Serve() chan error {
