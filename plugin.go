@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"net/http"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -56,7 +57,7 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	var exporter sdktrace.SpanExporter
 	switch Exporter(p.cfg.Exporter) {
 	case stdout:
-		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
+		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(os.Stdout))
 		if err != nil {
 			return err
 		}
