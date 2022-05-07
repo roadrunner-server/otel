@@ -5,15 +5,13 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"sync"
 	"time"
 
 	"github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v2/utils"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/zipkin"
@@ -21,7 +19,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -32,10 +29,9 @@ const (
 type Plugin struct {
 	cfg         *Config
 	log         *zap.Logger
-	once        sync.Once
 	tracer      *sdktrace.TracerProvider
 	propagators propagation.TextMapPropagator
-	handler     http.Handler
+	mdw         mdw
 }
 
 func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
@@ -81,7 +77,16 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 
 		options = append(options, otlptracehttp.WithEndpoint(p.cfg.Endpoint))
 		options = append(options, otlptracehttp.WithHeaders(p.cfg.Headers))
-		client := otlptracehttp.NewClient(options...)
+
+		var client otlptrace.Client
+		switch p.cfg.Client {
+		case "http":
+			client = otlptracehttp.NewClient(options...)
+		case "grpc":
+			otlptracegrpc.NewClient()
+		default:
+			client = otlptracehttp.NewClient(options...)
+		}
 		// 1 min timeout
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
@@ -100,28 +105,14 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+	p.mdw = wrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	p.once.Do(func() {
-		p.handler = otelhttp.NewHandler(next, "",
-			otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
-				return r.RequestURI
-			}),
-			otelhttp.WithSpanOptions(
-				trace.WithNewRoot(),
-				trace.WithSpanKind(trace.SpanKindServer)),
-			otelhttp.WithPropagators(p.propagators),
-			otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents))
-	})
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), utils.OtelTracerNameKey, p.cfg.ServiceName)
-		p.handler.ServeHTTP(w, r.WithContext(ctx))
-	})
+	return Handler(next, p.mdw)
 }
 
 func (p *Plugin) Serve() chan error {
@@ -129,6 +120,7 @@ func (p *Plugin) Serve() chan error {
 }
 
 func (p *Plugin) Stop() error {
+	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#forceflush
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	err := p.tracer.ForceFlush(ctx)
@@ -136,6 +128,7 @@ func (p *Plugin) Stop() error {
 		return err
 	}
 
+	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shutdown
 	ctx2, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	err = p.tracer.Shutdown(ctx2)
@@ -156,5 +149,8 @@ func newResource(serviceName, serviceVersion string) *resource.Resource {
 		semconv.OSNameKey.String(runtime.GOOS),
 		semconv.ServiceNameKey.String(serviceName),
 		semconv.ServiceVersionKey.String(serviceVersion),
+		semconv.WebEngineNameKey.String("RoadRunner"),
+		semconv.WebEngineVersionKey.String("2.9.0"),
+		semconv.HostArchKey.String(runtime.GOARCH),
 	)
 }

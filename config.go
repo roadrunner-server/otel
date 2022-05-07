@@ -17,6 +17,8 @@ type Config struct {
 	Exporter string `mapstructure:"exporter"`
 	// CustomURL to use to send spans
 	CustomURL string `mapstructure:"custom_url"`
+	// Client
+	Client string `mapstructure:"client"`
 	// Endpoint to connect
 	Endpoint string `mapstructure:"endpoint"`
 	// ServiceName describes the service in the attributes
