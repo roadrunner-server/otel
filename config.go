@@ -8,17 +8,24 @@ const (
 	otlp      Exporter = "otlp"
 )
 
+type Client string
+
+const (
+	grpcClient Client = "grpc"
+	httpClient Client = "http"
+)
+
 type Config struct {
 	// Insecure endpoint (http)
 	Insecure bool `mapstructure:"insecure"`
 	// Compress - use gzip compression
 	Compress bool `mapstructure:"compress"`
 	// Exporter type, can be zipkin,stdout or otlp
-	Exporter string `mapstructure:"exporter"`
-	// CustomURL to use to send spans
+	Exporter Exporter `mapstructure:"exporter"`
+	// CustomURL to use to send spans, has effect only for the HTTP exporter
 	CustomURL string `mapstructure:"custom_url"`
 	// Client
-	Client string `mapstructure:"client"`
+	Client Client `mapstructure:"client"`
 	// Endpoint to connect
 	Endpoint string `mapstructure:"endpoint"`
 	// ServiceName describes the service in the attributes
@@ -31,7 +38,7 @@ type Config struct {
 
 func (c *Config) InitDefault() {
 	if c.Exporter == "" {
-		c.Exporter = string(otlp)
+		c.Exporter = otlp
 	}
 
 	if c.ServiceName == "" {
@@ -45,5 +52,12 @@ func (c *Config) InitDefault() {
 	if c.Endpoint == "" {
 		// otlp default
 		c.Endpoint = "localhost:4318"
+	}
+
+	switch c.Client {
+	case grpcClient:
+	case httpClient:
+	default:
+		c.Client = httpClient
 	}
 }

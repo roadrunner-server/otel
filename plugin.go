@@ -20,6 +20,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
+
+	// gzip grpc compressor
+	_ "google.golang.org/grpc/encoding/gzip"
 )
 
 const (
@@ -46,12 +49,17 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		return errors.E(op, err)
 	}
 
+	// init logger
 	p.log = &zap.Logger{}
 	*p.log = *log
 
+	// init default configuration
 	p.cfg.InitDefault()
+
 	var exporter sdktrace.SpanExporter
-	switch Exporter(p.cfg.Exporter) {
+	var client otlptrace.Client
+
+	switch p.cfg.Exporter {
 	case stdout:
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(os.Stdout))
 		if err != nil {
@@ -63,36 +71,21 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 			return err
 		}
 	case otlp:
-		options := make([]otlptracehttp.Option, 0, 5)
-		if p.cfg.Insecure {
-			options = append(options, otlptracehttp.WithInsecure())
-		}
-		if p.cfg.Compress {
-			options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
-		}
-
-		if p.cfg.CustomURL != "" {
-			options = append(options, otlptracehttp.WithURLPath(p.cfg.CustomURL))
-		}
-
-		options = append(options, otlptracehttp.WithEndpoint(p.cfg.Endpoint))
-		options = append(options, otlptracehttp.WithHeaders(p.cfg.Headers))
-
-		var client otlptrace.Client
 		switch p.cfg.Client {
-		case "http":
-			client = otlptracehttp.NewClient(options...)
-		case "grpc":
-			otlptracegrpc.NewClient()
+		case httpClient:
+			client = otlptracehttp.NewClient(httpOptions(p.cfg)...)
+		case grpcClient:
+			client = otlptracegrpc.NewClient(grpcOptions(p.cfg)...)
 		default:
-			client = otlptracehttp.NewClient(options...)
+			return errors.Errorf("unknown client: %s", p.cfg.Client)
 		}
+
 		// 1 min timeout
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 		exporter, err = otlptrace.New(ctx, client)
 		if err != nil {
-			return err
+			return errors.E(op, err)
 		}
 	default:
 		return errors.Errorf("unknown exporter: %s", p.cfg.Exporter)
@@ -101,7 +94,7 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	p.tracer = sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion)),
+		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion, cfg.RRVersion())),
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
@@ -143,14 +136,48 @@ func (p *Plugin) Name() string {
 	return name
 }
 
-func newResource(serviceName, serviceVersion string) *resource.Resource {
+func newResource(serviceName, serviceVersion, rrVersion string) *resource.Resource {
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.OSNameKey.String(runtime.GOOS),
 		semconv.ServiceNameKey.String(serviceName),
 		semconv.ServiceVersionKey.String(serviceVersion),
 		semconv.WebEngineNameKey.String("RoadRunner"),
-		semconv.WebEngineVersionKey.String("2.9.0"),
+		semconv.WebEngineVersionKey.String(rrVersion),
 		semconv.HostArchKey.String(runtime.GOARCH),
 	)
+}
+
+func grpcOptions(cfg *Config) []otlptracegrpc.Option {
+	options := make([]otlptracegrpc.Option, 0, 5)
+	if cfg.Insecure {
+		options = append(options, otlptracegrpc.WithInsecure())
+	}
+	if cfg.Compress {
+		options = append(options, otlptracegrpc.WithCompressor("gzip"))
+	}
+
+	options = append(options, otlptracegrpc.WithEndpoint(cfg.Endpoint))
+	options = append(options, otlptracegrpc.WithHeaders(cfg.Headers))
+
+	return options
+}
+
+func httpOptions(cfg *Config) []otlptracehttp.Option {
+	options := make([]otlptracehttp.Option, 0, 5)
+	if cfg.Insecure {
+		options = append(options, otlptracehttp.WithInsecure())
+	}
+	if cfg.Compress {
+		options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
+	}
+
+	if cfg.CustomURL != "" {
+		options = append(options, otlptracehttp.WithURLPath(cfg.CustomURL))
+	}
+
+	options = append(options, otlptracehttp.WithEndpoint(cfg.Endpoint))
+	options = append(options, otlptracehttp.WithHeaders(cfg.Headers))
+
+	return options
 }

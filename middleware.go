@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// type alias to middleware
+// type alias for the middleware
 type mdw func(http.Handler) http.Handler
 
 func Handler(next http.Handler, middleware mdw) http.Handler {
