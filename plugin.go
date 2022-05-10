@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
 
 	// gzip grpc compressor
@@ -145,6 +145,9 @@ func newResource(serviceName, serviceVersion, rrVersion string) *resource.Resour
 		semconv.WebEngineNameKey.String("RoadRunner"),
 		semconv.WebEngineVersionKey.String(rrVersion),
 		semconv.HostArchKey.String(runtime.GOARCH),
+		semconv.TelemetrySDKNameKey.String("opentelemetry"),
+		semconv.TelemetrySDKLanguageKey.String("go"),
+		semconv.TelemetrySDKVersionKey.String(otel.Version()),
 	)
 }
 
