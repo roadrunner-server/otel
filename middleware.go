@@ -25,7 +25,6 @@ func wrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider, sn str
 				return r.RequestURI
 			}),
 			otelhttp.WithSpanOptions(
-				trace.WithNewRoot(),
 				trace.WithSpanKind(trace.SpanKindServer),
 			),
 			otelhttp.WithPropagators(prop),
