@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"runtime"
@@ -44,7 +45,8 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		return errors.E(errors.Disabled)
 	}
 
-	err := cfg.UnmarshalKey(name, &p.cfg)
+	// name -> http.otel
+	err := cfg.UnmarshalKey(fmt.Sprintf("%s.%s", "http", name), &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
