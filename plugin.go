@@ -2,7 +2,6 @@ package otel
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"runtime"
@@ -27,7 +26,8 @@ import (
 )
 
 const (
-	name string = "otel"
+	name             string = "otel"
+	configurationKey        = "http.otel"
 )
 
 type Plugin struct {
@@ -41,12 +41,12 @@ type Plugin struct {
 func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 	const op = errors.Op("otel_plugin_init")
 
-	if !cfg.Has(name) {
+	// name -> http.otel
+	if !cfg.Has(configurationKey) {
 		return errors.E(errors.Disabled)
 	}
 
-	// name -> http.otel
-	err := cfg.UnmarshalKey(fmt.Sprintf("%s.%s", "http", name), &p.cfg)
+	err := cfg.UnmarshalKey(configurationKey, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
