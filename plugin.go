@@ -27,7 +27,7 @@ import (
 
 const (
 	name             string = "otel"
-	configurationKey        = "http.otel"
+	configurationKey string = "http.otel"
 )
 
 type Plugin struct {
