@@ -3,7 +3,7 @@ module github.com/roadrunner-server/otel/v2
 go 1.18
 
 require (
-	github.com/roadrunner-server/api/v2 v2.17.0
+	github.com/roadrunner-server/api/v2 v2.17.1
 	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/sdk/v2 v2.14.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
