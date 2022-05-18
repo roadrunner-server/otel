@@ -9,7 +9,9 @@ import (
 
 	"github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/errors"
+	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -72,6 +74,11 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		if err != nil {
 			return err
 		}
+	case jaegerExp:
+		exporter, err = jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(p.cfg.Endpoint)))
+		if err != nil {
+			return err
+		}
 	case otlp:
 		switch p.cfg.Client {
 		case httpClient:
@@ -99,7 +106,7 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion, cfg.RRVersion())),
 	)
 
-	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.mdw = wrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	otel.SetTracerProvider(p.tracer)
 

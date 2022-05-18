@@ -4,6 +4,7 @@ type Exporter string
 
 const (
 	zipkinExp Exporter = "zipkin"
+	jaegerExp Exporter = "jaeger"
 	stdout    Exporter = "stdout"
 	otlp      Exporter = "otlp"
 )
