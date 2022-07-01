@@ -198,8 +198,6 @@ github.com/roadrunner-server/api/v2 v2.18.0 h1:xKvlKmgTyQjP+AUMMYL0M/Wk7iyp+bG4q
 github.com/roadrunner-server/api/v2 v2.18.0/go.mod h1:F4B43HFTLyZee+YHPMY7c3kaVwONNlbjU+UdTq5pmq8=
 github.com/roadrunner-server/errors v1.1.2 h1:+LPw9Akgg+8LAGM4wASMWLAoBIbyP+mhNfR+FBS2Slw=
 github.com/roadrunner-server/errors v1.1.2/go.mod h1:jVSh32nFtRMzKItYUM9W2CTLLpXAM8HseL2lUENPYtU=
-github.com/roadrunner-server/sdk/v2 v2.16.0 h1:ZVViuZm2N0NpkWGZVDxJaKX0/RLoZSgXqa9psNqv660=
-github.com/roadrunner-server/sdk/v2 v2.16.0/go.mod h1:Y9p0WbWOFKBKyognNr3cREP8v+Y+iE9P/J3uiz9zegI=
 github.com/roadrunner-server/sdk/v2 v2.17.3 h1:BkBDcdO+YhEvbmsbPtak5yg91FDW+GFoZr5UBrWOQJc=
 github.com/roadrunner-server/sdk/v2 v2.17.3/go.mod h1:n05/SPVQ9WFj4UJEruVbXrSUfo2hkGiO4HxMgvsAlWM=
 github.com/roadrunner-server/tcplisten v1.1.2 h1:GBjKlSEbA67UB2y83rFWsQKqMQGyalhTN9Q9HCIMBC0=
@@ -219,7 +217,7 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/stretchr/testify v1.7.4 h1:wZRexSlwd7ZXfKINDLsO4r7WBt3gTKONc6K/VesHvHM=
+github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.0.2/go.mod h1:1WAq6h33pAW+iRreB34OORO2Nf7qel3VV3fjBj+hCSs=
@@ -346,8 +344,6 @@ golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v
 golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4/go.mod h1:p54w0d4576C0XHj96bSt6lcn1PtDYWL6XObtHCRCNQM=
 golang.org/x/net v0.0.0-20210428140749-89ef3d95e781/go.mod h1:OJAsFXCWl8Ukc7SiCT/9KSuxbyM7479/AVlXFRxuMCk=
 golang.org/x/net v0.0.0-20210917221730-978cfadd31cf/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e h1:TsQ7F31D3bUCLeqPT0u+yjp1guoArKaNKmCr22PYgTQ=
-golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/net v0.0.0-20220630215102-69896b714898 h1:K7wO6V1IrczY9QOQ2WkVpw4JQSwCd52UsxVEirZUfiw=
 golang.org/x/net v0.0.0-20220630215102-69896b714898/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
@@ -519,8 +515,6 @@ google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f/go.mod h1:FWY/as6D
 google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200825200019-8632dd797987/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03 h1:W70HjnmXFJm+8RNjOpIDYW2nKsSi/af0VvIZUtYkwuU=
-google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
 google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7 h1:q4zUJDd0+knPFB9x20S3vnxzlYNBbt8Yd7zBMVMteeM=
 google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
