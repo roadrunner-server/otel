@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -40,7 +41,7 @@ type Plugin struct {
 	mdw         mdw
 }
 
-func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
+func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
 	// name -> http.otel
@@ -76,6 +77,16 @@ func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error {
 		}
 	case jaegerExp:
 		exporter, err = jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(p.cfg.Endpoint)))
+		if err != nil {
+			return err
+		}
+	case jaegerAgent:
+		host, port, errHp := net.SplitHostPort(p.cfg.Endpoint)
+		if errHp != nil {
+			return errHp
+		}
+
+		exporter, err = jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(host), jaeger.WithAgentPort(port)))
 		if err != nil {
 			return err
 		}
