@@ -192,10 +192,14 @@ github.com/rabbitmq/amqp091-go v1.1.0/go.mod h1:ogQDLSOACsLPsIq0NpbtiifNZi2YOz0V
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/roadrunner-server/api/v2 v2.20.1 h1:j6tIrIgxOLxa3ONCqYe4LfS0yIcch4QEzLcLmzcCkBQ=
 github.com/roadrunner-server/api/v2 v2.20.1/go.mod h1:IlmguovM8ExuTctvmqitx8+cdfadzHi15fY5Njl55Kk=
+github.com/roadrunner-server/api/v2 v2.21.0 h1:OtzTLvZt9ENgfWtR9eAomMrF1ZwDkTj95Upb/AkvVD0=
+github.com/roadrunner-server/api/v2 v2.21.0/go.mod h1:i6+EpU/ZSZIPZNvM/Tk8lobqVSNQ6+iOe4LSBO2iORo=
 github.com/roadrunner-server/errors v1.2.0 h1:qBmNXt8Iex9QnYTjCkbJKsBZu2EtYkQCM06GUDcQBbI=
 github.com/roadrunner-server/errors v1.2.0/go.mod h1:z0ECxZp/dDa5RahtMcy4mBIavVxiZ9vwE5kByl7kFtY=
 github.com/roadrunner-server/sdk/v2 v2.18.2 h1:t2Sz3ltV6sPSGfo7P0VdCk+p8pJYg2AnTOJArBHreAg=
 github.com/roadrunner-server/sdk/v2 v2.18.2/go.mod h1:3qWZftrmvbOZ8zjeRZIGBfoh1x1rJA8KW5ZtUrmyvdg=
+github.com/roadrunner-server/sdk/v2 v2.18.3 h1:2nywVM5XexByq3QEdZE3VYrwoqGcXTfOSOPydwYBHXM=
+github.com/roadrunner-server/sdk/v2 v2.18.3/go.mod h1:5M5NkYpP/g76CPBHJYO9s/tSw/N8Xg7CnPIriUYzx9c=
 github.com/roadrunner-server/tcplisten v1.2.0 h1:nsiXEEb0zP7vjAsCWNHKpM0HdwFK/KlafFF/2gsTJlg=
 github.com/roadrunner-server/tcplisten v1.2.0/go.mod h1:NhumKvt7dbIKVNZnqR1fA4ET1D8ngIKsg0TxnuJTL6A=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
@@ -253,8 +257,6 @@ go.opentelemetry.io/otel/sdk v1.9.0/go.mod h1:AEZc8nt5bd2F7BC24J5R0mrjYnpEgYHyTc
 go.opentelemetry.io/otel/trace v1.9.0 h1:oZaCNJUjWcg60VXWee8lJKlqhPbXAPB51URuR47pQYc=
 go.opentelemetry.io/otel/trace v1.9.0/go.mod h1:2737Q0MuG8q1uILYm2YYVkAyLtOofiTNGg6VODnOiPo=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
-go.opentelemetry.io/proto/otlp v0.18.0 h1:W5hyXNComRa23tGpKwG+FRAc4rfF6ZUg1JReK+QHS80=
-go.opentelemetry.io/proto/otlp v0.18.0/go.mod h1:H7XAot3MsfNsj7EXtrA2q5xSNQ10UqI405h3+duxN4U=
 go.opentelemetry.io/proto/otlp v0.19.0 h1:IVN6GR+mhC4s5yfcTbmzHYODqvWAp3ZedA2SJPI1Nnw=
 go.opentelemetry.io/proto/otlp v0.19.0/go.mod h1:H7XAot3MsfNsj7EXtrA2q5xSNQ10UqI405h3+duxN4U=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
