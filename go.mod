@@ -3,9 +3,9 @@ module github.com/roadrunner-server/otel/v2
 go 1.19
 
 require (
-	github.com/roadrunner-server/api/v2 v2.22.2-rc.1
+	github.com/roadrunner-server/api/v2 v2.23.0-rc.2
 	github.com/roadrunner-server/errors v1.2.0
-	github.com/roadrunner-server/sdk/v2 v2.19.0-rc.1
+	github.com/roadrunner-server/sdk/v2 v2.19.0-rc.3
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.34.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.9.0
 	go.opentelemetry.io/otel v1.9.0
@@ -38,6 +38,6 @@ require (
 	golang.org/x/net v0.0.0-20220907135653-1e95f45603a7 // indirect
 	golang.org/x/sys v0.0.0-20220907062415-87db552b00fd // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220902135211-223410557253 // indirect
+	google.golang.org/genproto v0.0.0-20220908141613-51c1cc9bc6d0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
