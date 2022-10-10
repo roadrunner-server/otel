@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/errors"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel"
@@ -33,6 +32,15 @@ const (
 	configurationKey string = "http.otel"
 )
 
+type Configurer interface {
+	// RRVersion returns running RR version
+	RRVersion() string
+	// UnmarshalKey takes a single key and unmarshal it into a Struct.
+	UnmarshalKey(name string, out any) error
+	// Has checks if config section exists.
+	Has(name string) bool
+}
+
 type Plugin struct {
 	cfg         *Config
 	log         *zap.Logger
@@ -41,7 +49,7 @@ type Plugin struct {
 	mdw         mdw
 }
 
-func (p *Plugin) Init(cfg config.Configurer, log *zap.Logger) error { //nolint:gocyclo
+func (p *Plugin) Init(cfg Configurer, log *zap.Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
 	// name -> http.otel
