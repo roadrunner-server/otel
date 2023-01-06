@@ -32,6 +32,10 @@ const (
 	configurationKey string = "http.otel"
 )
 
+type Logger interface {
+	NamedLogger(name string) *zap.Logger
+}
+
 type Configurer interface {
 	// RRVersion returns running RR version
 	RRVersion() string
@@ -49,7 +53,7 @@ type Plugin struct {
 	mdw         mdw
 }
 
-func (p *Plugin) Init(cfg Configurer, log *zap.Logger) error { //nolint:gocyclo
+func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
 	// name -> http.otel
@@ -63,8 +67,7 @@ func (p *Plugin) Init(cfg Configurer, log *zap.Logger) error { //nolint:gocyclo
 	}
 
 	// init logger
-	p.log = &zap.Logger{}
-	*p.log = *log
+	p.log = log.NamedLogger(name)
 
 	// init default configuration
 	p.cfg.InitDefault()
@@ -140,7 +143,7 @@ func (p *Plugin) Serve() chan error {
 	return make(chan error, 1)
 }
 
-func (p *Plugin) Stop() error {
+func (p *Plugin) Stop(context.Context) error {
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#forceflush
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
