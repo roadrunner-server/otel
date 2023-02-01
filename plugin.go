@@ -163,6 +163,10 @@ func (p *Plugin) Stop(context.Context) error {
 	return nil
 }
 
+func (p *Plugin) Tracer() *sdktrace.TracerProvider {
+	return p.tracer
+}
+
 func (p *Plugin) Name() string {
 	return name
 }
