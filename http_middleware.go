@@ -13,7 +13,7 @@ import (
 // type alias for the middleware
 type mdw func(http.Handler) http.Handler
 
-func HttpHandler(next http.Handler, middleware mdw) http.Handler {
+func HTTPHandler(next http.Handler, middleware mdw) http.Handler {
 	return middleware(next)
 }
 

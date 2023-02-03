@@ -22,9 +22,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	// gzip grpc compressor
-	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 )
 
@@ -68,7 +68,6 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		err = cfg.UnmarshalKey(httpConfigurationKey, &p.cfg)
 	} else {
 		err = cfg.UnmarshalKey(grpcConfigurationKey, &p.cfg)
-
 	}
 
 	if err != nil {
@@ -145,7 +144,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	return HttpHandler(next, p.mdw)
+	return HTTPHandler(next, p.mdw)
 }
 
 func (p *Plugin) Interceptor() grpc.UnaryServerInterceptor {

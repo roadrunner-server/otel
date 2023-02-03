@@ -12,11 +12,6 @@ const (
 
 type Client string
 
-const (
-	grpcClient Client = "grpc"
-	httpClient Client = "http"
-)
-
 type Config struct {
 	// Insecure endpoint (http)
 	Insecure bool `mapstructure:"insecure"`
