@@ -22,14 +22,14 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	// gzip grpc compressor
 	_ "google.golang.org/grpc/encoding/gzip"
 )
 
 const (
-	name             string = "otel"
-	configurationKey string = "http.otel"
+	pluginName string = "otel"
 )
 
 type Logger interface {
@@ -51,23 +51,23 @@ type Plugin struct {
 	tracer      *sdktrace.TracerProvider
 	propagators propagation.TextMapPropagator
 	mdw         mdw
+	intcpt      intcpt
 }
 
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
-	// name -> http.otel
-	if !cfg.Has(configurationKey) {
+	if !cfg.Has(pluginName) {
 		return errors.E(errors.Disabled)
 	}
 
-	err := cfg.UnmarshalKey(configurationKey, &p.cfg)
+	err := cfg.UnmarshalKey(pluginName, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
 
 	// init logger
-	p.log = log.NamedLogger(name)
+	p.log = log.NamedLogger(pluginName)
 
 	// init default configuration
 	p.cfg.InitDefault()
@@ -129,14 +129,19 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
-	p.mdw = wrapper(p.propagators, p.tracer, p.cfg.ServiceName)
+	p.mdw = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
+	p.intcpt = grpcWrapper(p.propagators, p.tracer)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	return Handler(next, p.mdw)
+	return HTTPHandler(next, p.mdw)
+}
+
+func (p *Plugin) Interceptor() grpc.UnaryServerInterceptor {
+	return GrpcHandler(p.intcpt)
 }
 
 func (p *Plugin) Serve() chan error {
@@ -168,7 +173,7 @@ func (p *Plugin) Tracer() *sdktrace.TracerProvider {
 }
 
 func (p *Plugin) Name() string {
-	return name
+	return pluginName
 }
 
 func newResource(serviceName, serviceVersion, rrVersion string) *resource.Resource {
