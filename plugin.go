@@ -24,12 +24,14 @@ import (
 	"go.uber.org/zap"
 
 	// gzip grpc compressor
+	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 )
 
 const (
-	name             string = "otel"
-	configurationKey string = "http.otel"
+	name                 string = "otel"
+	httpConfigurationKey string = "http.otel"
+	grpcConfigurationKey string = "grpc.otel"
 )
 
 type Logger interface {
@@ -51,17 +53,24 @@ type Plugin struct {
 	tracer      *sdktrace.TracerProvider
 	propagators propagation.TextMapPropagator
 	mdw         mdw
+	intcpt      intcpt
 }
 
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
-	// name -> http.otel
-	if !cfg.Has(configurationKey) {
+	if !cfg.Has(httpConfigurationKey) && !cfg.Has(grpcConfigurationKey) {
 		return errors.E(errors.Disabled)
 	}
 
-	err := cfg.UnmarshalKey(configurationKey, &p.cfg)
+	var err error
+	if cfg.Has(httpConfigurationKey) {
+		err = cfg.UnmarshalKey(httpConfigurationKey, &p.cfg)
+	} else {
+		err = cfg.UnmarshalKey(grpcConfigurationKey, &p.cfg)
+
+	}
+
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -102,13 +111,12 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 			return err
 		}
 	case otlp:
-		switch p.cfg.Client {
-		case httpClient:
+		if cfg.Has(httpConfigurationKey) {
 			client = otlptracehttp.NewClient(httpOptions(p.cfg)...)
-		case grpcClient:
+		}
+
+		if cfg.Has(grpcConfigurationKey) {
 			client = otlptracegrpc.NewClient(grpcOptions(p.cfg)...)
-		default:
-			return errors.Errorf("unknown client: %s", p.cfg.Client)
 		}
 
 		// 1 min timeout
@@ -129,14 +137,19 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
-	p.mdw = wrapper(p.propagators, p.tracer, p.cfg.ServiceName)
+	p.mdw = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
+	p.intcpt = grpcWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	return Handler(next, p.mdw)
+	return HttpHandler(next, p.mdw)
+}
+
+func (p *Plugin) Interceptor() grpc.UnaryServerInterceptor {
+	return GrpcHandler(p.intcpt)
 }
 
 func (p *Plugin) Serve() chan error {

@@ -26,8 +26,6 @@ type Config struct {
 	Exporter Exporter `mapstructure:"exporter"`
 	// CustomURL to use to send spans, has effect only for the HTTP exporter
 	CustomURL string `mapstructure:"custom_url"`
-	// Client
-	Client Client `mapstructure:"client"`
 	// Endpoint to connect
 	Endpoint string `mapstructure:"endpoint"`
 	// ServiceName describes the service in the attributes
@@ -54,12 +52,5 @@ func (c *Config) InitDefault() {
 	if c.Endpoint == "" {
 		// otlp default
 		c.Endpoint = "localhost:4318"
-	}
-
-	switch c.Client {
-	case grpcClient:
-	case httpClient:
-	default:
-		c.Client = httpClient
 	}
 }
