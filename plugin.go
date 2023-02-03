@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	name             string = "otel"
-	configurationKey string = "otel"
+	pluginName string = "otel"
 )
 
 type Logger interface {
@@ -58,17 +57,17 @@ type Plugin struct {
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
-	if !cfg.Has(configurationKey) {
+	if !cfg.Has(pluginName) {
 		return errors.E(errors.Disabled)
 	}
 
-	err := cfg.UnmarshalKey(configurationKey, &p.cfg)
+	err := cfg.UnmarshalKey(pluginName, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
 
 	// init logger
-	p.log = log.NamedLogger(name)
+	p.log = log.NamedLogger(pluginName)
 
 	// init default configuration
 	p.cfg.InitDefault()
@@ -174,7 +173,7 @@ func (p *Plugin) Tracer() *sdktrace.TracerProvider {
 }
 
 func (p *Plugin) Name() string {
-	return name
+	return pluginName
 }
 
 func newResource(serviceName, serviceVersion, rrVersion string) *resource.Resource {
