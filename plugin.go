@@ -130,7 +130,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.mdw = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
-	p.intcpt = grpcWrapper(p.tracer, p.cfg.ServiceName)
+	p.intcpt = grpcWrapper(p.propagators, p.tracer)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
