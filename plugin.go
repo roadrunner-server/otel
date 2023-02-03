@@ -29,9 +29,8 @@ import (
 )
 
 const (
-	name                 string = "otel"
-	httpConfigurationKey string = "http.otel"
-	grpcConfigurationKey string = "grpc.otel"
+	name             string = "otel"
+	configurationKey string = "otel"
 )
 
 type Logger interface {
@@ -59,17 +58,11 @@ type Plugin struct {
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	const op = errors.Op("otel_plugin_init")
 
-	if !cfg.Has(httpConfigurationKey) && !cfg.Has(grpcConfigurationKey) {
+	if !cfg.Has(configurationKey) {
 		return errors.E(errors.Disabled)
 	}
 
-	var err error
-	if cfg.Has(httpConfigurationKey) {
-		err = cfg.UnmarshalKey(httpConfigurationKey, &p.cfg)
-	} else {
-		err = cfg.UnmarshalKey(grpcConfigurationKey, &p.cfg)
-	}
-
+	err := cfg.UnmarshalKey(configurationKey, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -110,12 +103,13 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 			return err
 		}
 	case otlp:
-		if cfg.Has(httpConfigurationKey) {
+		switch p.cfg.Client {
+		case httpClient:
 			client = otlptracehttp.NewClient(httpOptions(p.cfg)...)
-		}
-
-		if cfg.Has(grpcConfigurationKey) {
+		case grpcClient:
 			client = otlptracegrpc.NewClient(grpcOptions(p.cfg)...)
+		default:
+			return errors.Errorf("unknown client: %s", p.cfg.Client)
 		}
 
 		// 1 min timeout
