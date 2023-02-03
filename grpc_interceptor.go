@@ -14,7 +14,7 @@ func GrpcHandler(interceptor intcpt) grpc.UnaryServerInterceptor {
 	return interceptor()
 }
 
-func grpcWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider, sn string) intcpt {
+func grpcWrapper(tr trace.TracerProvider, sn string) intcpt {
 	return func() grpc.UnaryServerInterceptor {
 		return otelgrpc.UnaryServerInterceptor(
 			otelgrpc.WithTracerProvider(tr),
