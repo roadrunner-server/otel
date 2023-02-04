@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/sdk/interceptor"
 )
 
-// type alias for the interceptorscd
+// type alias for the interceptors
 type temporalInterceptor func() interceptor.Interceptor
 
 func TemporalHandler(interceptor temporalInterceptor) interceptor.Interceptor {
