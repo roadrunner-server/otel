@@ -9,13 +9,13 @@ import (
 )
 
 // type alias for the interceptorscd
-type temporalIntcpt func() interceptor.Interceptor
+type temporalInterceptor func() interceptor.Interceptor
 
-func TemporalHandler(interceptor temporalIntcpt) interceptor.Interceptor {
+func TemporalHandler(interceptor temporalInterceptor) interceptor.Interceptor {
 	return interceptor()
 }
 
-func temporalWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) temporalIntcpt {
+func temporalWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) temporalInterceptor {
 	return func() interceptor.Interceptor {
 		traceInterceptor, _ := opentelemetry.NewTracingInterceptor(
 			opentelemetry.TracerOptions{

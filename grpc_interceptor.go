@@ -8,13 +8,13 @@ import (
 )
 
 // type alias for the interceptors
-type intcpt func() grpc.UnaryServerInterceptor
+type grpcInterceptor func() grpc.UnaryServerInterceptor
 
-func GrpcHandler(interceptor intcpt) grpc.UnaryServerInterceptor {
+func GrpcHandler(interceptor grpcInterceptor) grpc.UnaryServerInterceptor {
 	return interceptor()
 }
 
-func grpcWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) intcpt {
+func grpcWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) grpcInterceptor {
 	return func() grpc.UnaryServerInterceptor {
 		return otelgrpc.UnaryServerInterceptor(
 			otelgrpc.WithTracerProvider(tr),

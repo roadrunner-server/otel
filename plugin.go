@@ -47,13 +47,13 @@ type Configurer interface {
 }
 
 type Plugin struct {
-	cfg            *Config
-	log            *zap.Logger
-	tracer         *sdktrace.TracerProvider
-	propagators    propagation.TextMapPropagator
-	mdw            mdw
-	intcpt         intcpt
-	temporalIntcpt temporalIntcpt
+	cfg                 *Config
+	log                 *zap.Logger
+	tracer              *sdktrace.TracerProvider
+	propagators         propagation.TextMapPropagator
+	httpMiddleware      httpMiddleware
+	grpcInterceptor     grpcInterceptor
+	temporalInterceptor temporalInterceptor
 }
 
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
@@ -136,24 +136,24 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
-	p.mdw = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
-	p.intcpt = grpcWrapper(p.propagators, p.tracer)
-	p.temporalIntcpt = temporalWrapper(p.propagators, p.tracer)
+	p.httpMiddleware = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
+	p.grpcInterceptor = grpcWrapper(p.propagators, p.tracer)
+	p.temporalInterceptor = temporalWrapper(p.propagators, p.tracer)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	return HTTPHandler(next, p.mdw)
+	return HTTPHandler(next, p.httpMiddleware)
 }
 
 func (p *Plugin) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
-	return GrpcHandler(p.intcpt)
+	return GrpcHandler(p.grpcInterceptor)
 }
 
 func (p *Plugin) TemporalInterceptor() interceptor.Interceptor {
-	return TemporalHandler(p.temporalIntcpt)
+	return TemporalHandler(p.temporalInterceptor)
 }
 
 func (p *Plugin) Serve() chan error {
