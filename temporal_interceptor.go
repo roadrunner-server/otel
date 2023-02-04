@@ -9,14 +9,14 @@ import (
 )
 
 // type alias for the interceptors
-type temporalInterceptor func() interceptor.Interceptor
+type temporalInterceptor func() interceptor.WorkerInterceptor
 
-func TemporalHandler(interceptor temporalInterceptor) interceptor.Interceptor {
+func TemporalHandler(interceptor temporalInterceptor) interceptor.WorkerInterceptor {
 	return interceptor()
 }
 
 func temporalWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) temporalInterceptor {
-	return func() interceptor.Interceptor {
+	return func() interceptor.WorkerInterceptor {
 		traceInterceptor, _ := opentelemetry.NewTracingInterceptor(
 			opentelemetry.TracerOptions{
 				Tracer:            tr.Tracer("WorkflowWorker"),

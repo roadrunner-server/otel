@@ -152,7 +152,7 @@ func (p *Plugin) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return GrpcHandler(p.grpcInterceptor)
 }
 
-func (p *Plugin) TemporalInterceptor() interceptor.Interceptor {
+func (p *Plugin) TemporalInterceptor() interceptor.WorkerInterceptor {
 	return TemporalHandler(p.temporalInterceptor)
 }
 
