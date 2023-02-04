@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.temporal.io/sdk/interceptor"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -46,12 +47,13 @@ type Configurer interface {
 }
 
 type Plugin struct {
-	cfg         *Config
-	log         *zap.Logger
-	tracer      *sdktrace.TracerProvider
-	propagators propagation.TextMapPropagator
-	mdw         mdw
-	intcpt      intcpt
+	cfg            *Config
+	log            *zap.Logger
+	tracer         *sdktrace.TracerProvider
+	propagators    propagation.TextMapPropagator
+	mdw            mdw
+	intcpt         intcpt
+	temporalIntcpt temporalIntcpt
 }
 
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
@@ -136,6 +138,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.mdw = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	p.intcpt = grpcWrapper(p.propagators, p.tracer)
+	p.temporalIntcpt = temporalWrapper(p.propagators, p.tracer)
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
@@ -147,6 +150,10 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 
 func (p *Plugin) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return GrpcHandler(p.intcpt)
+}
+
+func (p *Plugin) TemporalInterceptor() interceptor.Interceptor {
+	return TemporalHandler(p.temporalIntcpt)
 }
 
 func (p *Plugin) Serve() chan error {
