@@ -81,6 +81,11 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		if err != nil {
 			return err
 		}
+	case stderr:
+		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(os.Stderr))
+		if err != nil {
+			return err
+		}
 	case zipkinExp:
 		exporter, err = zipkin.New(p.cfg.Endpoint)
 		if err != nil {

@@ -7,6 +7,7 @@ const (
 	jaegerExp   Exporter = "jaeger"
 	jaegerAgent Exporter = "jaeger_agent"
 	stdout      Exporter = "stdout"
+	stderr      Exporter = "stderr"
 	otlp        Exporter = "otlp"
 )
 
