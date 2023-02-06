@@ -11,13 +11,13 @@ import (
 )
 
 // type alias for the middleware
-type mdw func(http.Handler) http.Handler
+type httpMiddleware func(http.Handler) http.Handler
 
-func HTTPHandler(next http.Handler, middleware mdw) http.Handler {
+func HTTPHandler(next http.Handler, middleware httpMiddleware) http.Handler {
 	return middleware(next)
 }
 
-func httpWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider, sn string) mdw {
+func httpWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider, sn string) httpMiddleware {
 	return func(h http.Handler) http.Handler {
 		// init otelhttp handler only once
 		handler := otelhttp.NewHandler(h, "",
