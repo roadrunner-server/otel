@@ -145,7 +145,7 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return HTTPHandler(next, p.mdw)
 }
 
-func (p *Plugin) Interceptor() grpc.UnaryServerInterceptor {
+func (p *Plugin) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return GrpcHandler(p.intcpt)
 }
 
