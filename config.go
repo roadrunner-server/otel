@@ -54,7 +54,7 @@ func (c *Config) InitDefault() {
 
 	if c.Endpoint == "" {
 		// otlp default
-		c.Endpoint = "localhost:4318"
+		c.Endpoint = "127.0.0.1:4318"
 	}
 
 	switch c.Client {
