@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/otel/exporters/zipkin v1.14.0
 	go.opentelemetry.io/otel/sdk v1.14.0
 	go.opentelemetry.io/otel/trace v1.14.0
-	go.temporal.io/sdk v1.21.1
+	go.temporal.io/sdk v1.22.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.2.0
 	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.54.0
@@ -48,7 +48,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.14.0 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	go.temporal.io/api v1.19.0 // indirect
+	go.temporal.io/api v1.19.1-0.20230322213042-07fb271d475b // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
