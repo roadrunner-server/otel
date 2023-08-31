@@ -57,6 +57,10 @@ func (c *Config) InitDefault() {
 		c.Endpoint = "127.0.0.1:4318"
 	}
 
+	if c.Exporter == jaegerExp {
+		println("[WARN] jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
+	}
+
 	switch c.Client {
 	case grpcClient:
 	case httpClient:
