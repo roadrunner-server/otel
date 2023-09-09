@@ -1108,6 +1108,8 @@ go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.4
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.43.0/go.mod h1:1WpsUwjQrUJSNugfMlPn0rPRJ9Do7wwBgTBPK7MLiS4=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.43.0 h1:HKORGpiOY0R0nAPtKx/ub8/7XoHhRooP8yNRkuPfelI=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.43.0/go.mod h1:e+y1M74SYXo/FcIx3UATwth2+5dDkM8dBi7eXg1tbw8=
+go.opentelemetry.io/contrib/propagators/jaeger v1.18.0 h1:T457dcPEUr4+wimXmIs+2lI8vpSnRpxEhSsY2n7+UjU=
+go.opentelemetry.io/contrib/propagators/jaeger v1.18.0/go.mod h1:FTAfGYSYWANl3fOqHpZYeC7AAAv4sdYgJ724NnE1msY=
 go.opentelemetry.io/otel v1.2.0/go.mod h1:aT17Fk0Z1Nor9e0uisf98LrntPGMnk4frBO9+dkf69I=
 go.opentelemetry.io/otel v1.17.0 h1:MW+phZ6WZ5/uk2nd93ANk/6yJ+dVrvNWUjGhnnFU5jM=
 go.opentelemetry.io/otel v1.17.0/go.mod h1:I2vmBGtFaODIVMBSTPVDlJSzBDNf93k60E6Ft0nyjo0=

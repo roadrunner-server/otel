@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/errors"
+	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -119,7 +120,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion, cfg.RRVersion())),
 	)
 
-	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.httpMiddleware = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	p.grpcInterceptor = grpcWrapper(p.propagators, p.tracer)
 	p.temporalInterceptor = temporalWrapper(p.propagators, p.tracer)
