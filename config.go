@@ -3,12 +3,11 @@ package otel
 type Exporter string
 
 const (
-	zipkinExp   Exporter = "zipkin"
-	jaegerExp   Exporter = "jaeger"
-	jaegerAgent Exporter = "jaeger_agent"
-	stdout      Exporter = "stdout"
-	stderr      Exporter = "stderr"
-	otlp        Exporter = "otlp"
+	zipkinExp Exporter = "zipkin"
+	jaegerExp Exporter = "jaeger"
+	stdout    Exporter = "stdout"
+	stderr    Exporter = "stderr"
+	otlp      Exporter = "otlp"
 )
 
 type Client string

@@ -2,16 +2,13 @@ package otel
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/roadrunner-server/errors"
-	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -83,6 +80,8 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		if err != nil {
 			return err
 		}
+	case jaegerExp:
+		return errors.Errorf("jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
 	case stderr:
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(os.Stderr))
 		if err != nil {
@@ -90,21 +89,6 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		}
 	case zipkinExp:
 		exporter, err = zipkin.New(p.cfg.Endpoint)
-		if err != nil {
-			return err
-		}
-	case jaegerExp:
-		exporter, err = jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(p.cfg.Endpoint)))
-		if err != nil {
-			return err
-		}
-	case jaegerAgent:
-		host, port, errHp := net.SplitHostPort(p.cfg.Endpoint)
-		if errHp != nil {
-			return errHp
-		}
-
-		exporter, err = jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(host), jaeger.WithAgentPort(port)))
 		if err != nil {
 			return err
 		}
@@ -135,7 +119,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion, cfg.RRVersion())),
 	)
 
-	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
+	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 	p.httpMiddleware = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
 	p.grpcInterceptor = grpcWrapper(p.propagators, p.tracer)
 	p.temporalInterceptor = temporalWrapper(p.propagators, p.tracer)
