@@ -1,5 +1,12 @@
 package otel
 
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+)
+
 type Exporter string
 
 const (
@@ -17,7 +24,18 @@ const (
 	httpClient Client = "http"
 )
 
+// Resource describes an entity about which identifying information and metadata is exposed.
+// Resource is an immutable object, equivalent to a map from key to unique value
+type Resource struct {
+	ServiceNameKey       string `mapstructure:"service_name"`
+	ServiceNamespaceKey  string `mapstructure:"service_namespace"`
+	ServiceInstanceIDKey string `mapstructure:"service_instance_id"`
+	ServiceVersionKey    string `mapstructure:"service_version"`
+}
+
 type Config struct {
+	// Resource describes an entity about which identifying information and metadata is exposed.
+	Resource *Resource `mapstructure:"resource"`
 	// Insecure endpoint (http)
 	Insecure bool `mapstructure:"insecure"`
 	// Compress - use gzip compression
@@ -38,17 +56,21 @@ type Config struct {
 	Headers map[string]string `mapstructure:"headers"`
 }
 
-func (c *Config) InitDefault() {
+func (c *Config) InitDefault(log *zap.Logger) {
 	if c.Exporter == "" {
 		c.Exporter = otlp
 	}
 
 	if c.ServiceName == "" {
 		c.ServiceName = "RoadRunner"
+	} else {
+		log.Warn("service_name is deprecated, use resource.service_name instead")
 	}
 
 	if c.ServiceVersion == "" {
 		c.ServiceVersion = "1.0.0"
+	} else {
+		log.Warn("service_version is deprecated, use resource.service_version instead")
 	}
 
 	if c.Endpoint == "" {
@@ -57,7 +79,7 @@ func (c *Config) InitDefault() {
 	}
 
 	if c.Exporter == jaegerExp {
-		println("[WARN] jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
+		log.Warn("jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
 	}
 
 	switch c.Client {
@@ -65,5 +87,33 @@ func (c *Config) InitDefault() {
 	case httpClient:
 	default:
 		c.Client = httpClient
+	}
+
+	if c.Resource == nil {
+		c.Resource = &Resource{
+			// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/resource/semantic_conventions/README.md#service-experimental
+			ServiceNameKey:       c.ServiceName,
+			ServiceVersionKey:    c.ServiceVersion,
+			ServiceInstanceIDKey: uuid.NewString(),
+			ServiceNamespaceKey:  fmt.Sprintf("RoadRunner-%s", uuid.NewString()),
+		}
+
+		return
+	}
+
+	if c.Resource.ServiceNameKey == "" {
+		c.Resource.ServiceNameKey = c.ServiceName
+	}
+
+	if c.Resource.ServiceVersionKey == "" {
+		c.Resource.ServiceVersionKey = c.ServiceVersion
+	}
+
+	if c.Resource.ServiceInstanceIDKey == "" {
+		c.Resource.ServiceInstanceIDKey = uuid.NewString()
+	}
+
+	if c.Resource.ServiceNamespaceKey == "" {
+		c.Resource.ServiceNamespaceKey = fmt.Sprintf("RoadRunner-%s", uuid.NewString())
 	}
 }

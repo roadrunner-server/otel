@@ -70,7 +70,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	p.log = log.NamedLogger(pluginName)
 
 	// init default configuration
-	p.cfg.InitDefault()
+	p.cfg.InitDefault(p.log)
 
 	var exporter sdktrace.SpanExporter
 	var client otlptrace.Client
@@ -117,7 +117,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	p.tracer = sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(newResource(p.cfg.ServiceName, p.cfg.ServiceVersion, cfg.RRVersion())),
+		sdktrace.WithResource(newResource(p.cfg.Resource, cfg.RRVersion())),
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
@@ -173,12 +173,14 @@ func (p *Plugin) Name() string {
 	return pluginName
 }
 
-func newResource(serviceName, serviceVersion, rrVersion string) *resource.Resource {
+func newResource(res *Resource, rrVersion string) *resource.Resource {
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.OSNameKey.String(runtime.GOOS),
-		semconv.ServiceNameKey.String(serviceName),
-		semconv.ServiceVersionKey.String(serviceVersion),
+		semconv.ServiceNameKey.String(res.ServiceNameKey),
+		semconv.ServiceVersionKey.String(res.ServiceVersionKey),
+		semconv.ServiceInstanceIDKey.String(res.ServiceInstanceIDKey),
+		semconv.ServiceNamespaceKey.String(res.ServiceNamespaceKey),
 		semconv.WebEngineNameKey.String("RoadRunner"),
 		semconv.WebEngineVersionKey.String(rrVersion),
 		semconv.HostArchKey.String(runtime.GOARCH),
