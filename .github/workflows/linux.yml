@@ -1,25 +1,17 @@
-name: Linux
+name: otel
 
 on:
   push:
     branches:
       - master
-      - beta
       - stable
-    tags-ignore:
-      - "**"
-    paths-ignore:
-      - "**.md"
-      - "**.yaml"
-      - "**.yml"
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "**.yaml"
-      - "**.yml"
+    branches:
+      - master
+      - stable
 
 jobs:
-  golang:
+  otel_plugin:
     name: Build (Go ${{ matrix.go }}, OS ${{matrix.os}})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
