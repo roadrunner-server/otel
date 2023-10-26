@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/google/uuid v1.3.1
 	github.com/roadrunner-server/errors v1.3.0
-	github.com/roadrunner-server/sdk/v4 v4.5.2
+	github.com/roadrunner-server/sdk/v4 v4.5.3
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.45.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.45.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.20.0
