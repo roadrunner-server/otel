@@ -21,7 +21,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.temporal.io/sdk/interceptor"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 
 	// gzip grpc compressor
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -50,7 +49,6 @@ type Plugin struct {
 	tracer              *sdktrace.TracerProvider
 	propagators         propagation.TextMapPropagator
 	httpMiddleware      httpMiddleware
-	grpcInterceptor     grpcInterceptor
 	temporalInterceptor temporalInterceptor
 }
 
@@ -122,7 +120,6 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.httpMiddleware = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
-	p.grpcInterceptor = grpcWrapper(p.propagators, p.tracer)
 	p.temporalInterceptor = temporalWrapper(p.propagators, p.tracer)
 	otel.SetTracerProvider(p.tracer)
 
@@ -131,10 +128,6 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return HTTPHandler(next, p.httpMiddleware)
-}
-
-func (p *Plugin) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
-	return GrpcHandler(p.grpcInterceptor)
 }
 
 func (p *Plugin) WorkerInterceptor() interceptor.WorkerInterceptor {
