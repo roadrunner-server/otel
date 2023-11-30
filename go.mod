@@ -2,7 +2,7 @@ module github.com/roadrunner-server/otel/v4
 
 go 1.21
 
-toolchain go1.21.0
+toolchain go1.21.4
 
 require (
 	github.com/google/uuid v1.4.0
@@ -23,6 +23,8 @@ require (
 	go.uber.org/zap v1.26.0
 	google.golang.org/grpc v1.59.0
 )
+
+exclude go.temporal.io/api v1.26.1
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
@@ -48,7 +50,7 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
-	go.temporal.io/api v1.26.1 // indirect
+	go.temporal.io/api v1.24.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
