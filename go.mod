@@ -2,7 +2,7 @@ module github.com/roadrunner-server/otel/v4
 
 go 1.21
 
-toolchain go1.21.4
+toolchain go1.21.5
 
 require (
 	github.com/google/uuid v1.5.0
