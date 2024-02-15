@@ -73,11 +73,6 @@ func (c *Config) InitDefault(log *zap.Logger) {
 		log.Warn("service_version is deprecated, use resource.service_version instead")
 	}
 
-	if c.Endpoint == "" {
-		// otlp default
-		c.Endpoint = "127.0.0.1:4318"
-	}
-
 	if c.Exporter == jaegerExp {
 		log.Warn("jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
 	}
