@@ -211,8 +211,14 @@ func httpOptions(cfg *Config) []otlptracehttp.Option {
 		options = append(options, otlptracehttp.WithURLPath(cfg.CustomURL))
 	}
 
-	options = append(options, otlptracehttp.WithEndpoint(cfg.Endpoint))
-	options = append(options, otlptracehttp.WithHeaders(cfg.Headers))
+	// if unset, OTEL will use the default one automatically
+	if cfg.Endpoint != "" {
+		options = append(options, otlptracehttp.WithEndpoint(cfg.Endpoint))
+	}
+
+	if len(cfg.Headers) > 0 {
+		options = append(options, otlptracehttp.WithHeaders(cfg.Headers))
+	}
 
 	return options
 }
