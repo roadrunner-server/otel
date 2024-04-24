@@ -6,16 +6,16 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/roadrunner-server/errors v1.4.0
 	github.com/roadrunner-server/sdk/v4 v4.7.1
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.50.0
-	go.opentelemetry.io/contrib/propagators/jaeger v1.25.0
-	go.opentelemetry.io/otel v1.25.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.25.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.25.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.25.0
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.25.0
-	go.opentelemetry.io/otel/exporters/zipkin v1.25.0
-	go.opentelemetry.io/otel/sdk v1.25.0
-	go.opentelemetry.io/otel/trace v1.25.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0
+	go.opentelemetry.io/contrib/propagators/jaeger v1.26.0
+	go.opentelemetry.io/otel v1.26.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.26.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.26.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.26.0
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.26.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.26.0
+	go.opentelemetry.io/otel/sdk v1.26.0
+	go.opentelemetry.io/otel/trace v1.26.0
 	go.temporal.io/sdk v1.26.1
 	go.temporal.io/sdk/contrib/opentelemetry v0.5.0
 	go.uber.org/zap v1.27.0
@@ -40,7 +40,7 @@ require (
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	go.opentelemetry.io/otel/metric v1.25.0 // indirect
+	go.opentelemetry.io/otel/metric v1.26.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
 	go.temporal.io/api v1.32.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
