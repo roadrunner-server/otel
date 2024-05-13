@@ -113,7 +113,6 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 	}
 
 	p.tracer = sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(newResource(p.cfg.Resource, cfg.RRVersion())),
 	)
@@ -138,19 +137,15 @@ func (p *Plugin) Serve() chan error {
 	return make(chan error, 1)
 }
 
-func (p *Plugin) Stop(context.Context) error {
+func (p *Plugin) Stop(ctx context.Context) error {
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#forceflush
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
 	err := p.tracer.ForceFlush(ctx)
 	if err != nil {
 		return err
 	}
 
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shutdown
-	ctx2, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-	err = p.tracer.Shutdown(ctx2)
+	err = p.tracer.Shutdown(ctx)
 	if err != nil {
 		return err
 	}
