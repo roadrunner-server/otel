@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/roadrunner-server/sdk/v4/utils"
+	rrcontext "github.com/roadrunner-server/context"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -32,7 +32,7 @@ func httpWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider, sn
 			otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents))
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), utils.OtelTracerNameKey, sn)
+			ctx := context.WithValue(r.Context(), rrcontext.OtelTracerNameKey, sn)
 			// have effect only if the span started outside
 			// if the OTEL middleware is the first in the line, has no effect (we haven't yet started a span)
 			prop.Inject(ctx, propagation.HeaderCarrier(r.Header))

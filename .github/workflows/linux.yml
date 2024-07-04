@@ -1,14 +1,6 @@
 name: otel
 
-on:
-  push:
-    branches:
-      - master
-      - stable
-  pull_request:
-    branches:
-      - master
-      - stable
+on: [push, pull_request]
 
 jobs:
   otel_plugin:

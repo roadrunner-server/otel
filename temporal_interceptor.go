@@ -1,7 +1,7 @@
 package otel
 
 import (
-	"github.com/roadrunner-server/sdk/v4/utils"
+	rrcontext "github.com/roadrunner-server/context"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/sdk/contrib/opentelemetry"
@@ -21,7 +21,7 @@ func temporalWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider
 			opentelemetry.TracerOptions{
 				Tracer:            tr.Tracer("WorkflowWorker"),
 				TextMapPropagator: prop,
-				SpanContextKey:    utils.OtelTracerNameKey,
+				SpanContextKey:    rrcontext.OtelTracerNameKey,
 			})
 		return traceInterceptor
 	}
