@@ -187,8 +187,14 @@ func grpcOptions(cfg *Config) []otlptracegrpc.Option {
 		options = append(options, otlptracegrpc.WithCompressor("gzip"))
 	}
 
-	options = append(options, otlptracegrpc.WithEndpoint(cfg.Endpoint))
-	options = append(options, otlptracegrpc.WithHeaders(cfg.Headers))
+	// if unset, OTEL will use the default one automatically
+	if cfg.Endpoint != "" {
+		options = append(options, otlptracegrpc.WithEndpoint(cfg.Endpoint))
+	}
+
+	if len(cfg.Headers) > 0 {
+		options = append(options, otlptracegrpc.WithHeaders(cfg.Headers))
+	}
 
 	return options
 }
