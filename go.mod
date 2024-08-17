@@ -1,8 +1,8 @@
 module github.com/roadrunner-server/otel/v5
 
-go 1.22
+go 1.23
 
-toolchain go1.22.5
+toolchain go1.23.0
 
 require (
 	github.com/google/uuid v1.6.0
@@ -34,7 +34,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.21.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/nexus-rpc/sdk-go v0.0.9 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
