@@ -2,6 +2,7 @@ package otel
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -80,7 +81,11 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	switch c.Client {
 	case grpcClient:
 	case httpClient:
+	case "":
+		c.Client = httpClient
+		setClientFromEnv(&c.Client, log)
 	default:
+		log.Warn("unknown exporter client", zap.String("client", string(c.Client)))
 		c.Client = httpClient
 	}
 
@@ -110,5 +115,26 @@ func (c *Config) InitDefault(log *zap.Logger) {
 
 	if c.Resource.ServiceNamespaceKey == "" {
 		c.Resource.ServiceNamespaceKey = fmt.Sprintf("RoadRunner-%s", uuid.NewString())
+	}
+}
+
+func setClientFromEnv(client *Client, log *zap.Logger) {
+	// https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
+	exporterEnv := "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"
+	exporterVal := os.Getenv(exporterEnv)
+	if exporterVal == "" {
+		exporterEnv = "OTEL_EXPORTER_OTLP_PROTOCOL"
+		exporterVal = os.Getenv(exporterEnv)
+	}
+	switch exporterVal {
+	case "":
+	case "grpc":
+		*client = grpcClient
+	case "http/protobuf":
+		*client = httpClient
+	case "http/json":
+		log.Warn("unsupported exporter protocol", zap.String("env.name", exporterEnv), zap.String("env.value", exporterVal))
+	default:
+		log.Warn("unknown exporter protocol", zap.String("env.name", exporterEnv), zap.String("env.value", exporterVal))
 	}
 }
