@@ -79,8 +79,8 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	}
 
 	switch c.Client {
-	case grpcClient:
-	case httpClient:
+	case grpcClient, httpClient:
+		// ok value, do nothing
 	case "":
 		c.Client = httpClient
 		setClientFromEnv(&c.Client, log)
@@ -128,6 +128,7 @@ func setClientFromEnv(client *Client, log *zap.Logger) {
 	}
 	switch exporterVal {
 	case "":
+		// env var not set, do not change the client
 	case "grpc":
 		*client = grpcClient
 	case "http/protobuf":
