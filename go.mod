@@ -2,7 +2,7 @@ module github.com/roadrunner-server/otel/v5
 
 go 1.23
 
-toolchain go1.23.0
+toolchain go1.23.1
 
 require (
 	github.com/google/uuid v1.6.0
@@ -18,7 +18,7 @@ require (
 	go.opentelemetry.io/otel/exporters/zipkin v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
-	go.temporal.io/sdk v1.28.1
+	go.temporal.io/sdk v1.29.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.66.0
@@ -48,6 +48,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e // indirect
 	golang.org/x/net v0.29.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
