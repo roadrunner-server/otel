@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.temporal.io/sdk/interceptor"
 	"go.uber.org/zap"
 
@@ -112,9 +112,13 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		return errors.Errorf("unknown exporter: %s", p.cfg.Exporter)
 	}
 
+	resource, err := newResource(p.cfg.Resource, cfg.RRVersion())
+	if err != nil {
+		return errors.E(op, err)
+	}
 	p.tracer = sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(newResource(p.cfg.Resource, cfg.RRVersion())),
+		sdktrace.WithResource(resource),
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
@@ -161,20 +165,21 @@ func (p *Plugin) Name() string {
 	return pluginName
 }
 
-func newResource(res *Resource, rrVersion string) *resource.Resource {
-	return resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.OSNameKey.String(runtime.GOOS),
-		semconv.ServiceNameKey.String(res.ServiceNameKey),
-		semconv.ServiceVersionKey.String(res.ServiceVersionKey),
-		semconv.ServiceInstanceIDKey.String(res.ServiceInstanceIDKey),
-		semconv.ServiceNamespaceKey.String(res.ServiceNamespaceKey),
-		semconv.WebEngineNameKey.String("RoadRunner"),
-		semconv.WebEngineVersionKey.String(rrVersion),
-		semconv.HostArchKey.String(runtime.GOARCH),
-		semconv.TelemetrySDKNameKey.String("opentelemetry"),
-		semconv.TelemetrySDKLanguageKey.String("go"),
-		semconv.TelemetrySDKVersionKey.String(otel.Version()),
+func newResource(res *Resource, rrVersion string) (*resource.Resource, error) {
+	return resource.New(context.Background(),
+		resource.WithSchemaURL(semconv.SchemaURL),
+		resource.WithFromEnv(),
+		resource.WithAttributes(
+			semconv.OSNameKey.String(runtime.GOOS),
+			semconv.ServiceNameKey.String(res.ServiceNameKey),
+			semconv.ServiceVersionKey.String(res.ServiceVersionKey),
+			semconv.ServiceInstanceIDKey.String(res.ServiceInstanceIDKey),
+			semconv.ServiceNamespaceKey.String(res.ServiceNamespaceKey),
+			semconv.WebEngineNameKey.String("RoadRunner"),
+			semconv.WebEngineVersionKey.String(rrVersion),
+			semconv.HostArchKey.String(runtime.GOARCH),
+		),
+		resource.WithTelemetrySDK(),
 	)
 }
 
