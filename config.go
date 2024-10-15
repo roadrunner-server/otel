@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/zap"
 )
 
@@ -62,18 +65,12 @@ func (c *Config) InitDefault(log *zap.Logger) {
 		c.Exporter = otlp
 	}
 
-	if c.ServiceName == "" {
-		c.ServiceName = "RoadRunner"
-	} else {
+	if c.ServiceName != "" {
 		log.Warn("service_name is deprecated, use resource.service_name instead")
 	}
-
-	if c.ServiceVersion == "" {
-		c.ServiceVersion = "1.0.0"
-	} else {
+	if c.ServiceVersion != "" {
 		log.Warn("service_version is deprecated, use resource.service_version instead")
 	}
-
 	if c.Exporter == jaegerExp {
 		log.Warn("jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
 	}
@@ -90,32 +87,14 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	}
 
 	if c.Resource == nil {
-		c.Resource = &Resource{
-			// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.25.0/specification/resource/semantic_conventions/README.md#service-experimental
-			ServiceNameKey:       c.ServiceName,
-			ServiceVersionKey:    c.ServiceVersion,
-			ServiceInstanceIDKey: uuid.NewString(),
-			ServiceNamespaceKey:  fmt.Sprintf("RoadRunner-%s", uuid.NewString()),
-		}
-
-		return
+		c.Resource = &Resource{}
 	}
 
-	if c.Resource.ServiceNameKey == "" {
-		c.Resource.ServiceNameKey = c.ServiceName
-	}
-
-	if c.Resource.ServiceVersionKey == "" {
-		c.Resource.ServiceVersionKey = c.ServiceVersion
-	}
-
-	if c.Resource.ServiceInstanceIDKey == "" {
-		c.Resource.ServiceInstanceIDKey = uuid.NewString()
-	}
-
-	if c.Resource.ServiceNamespaceKey == "" {
-		c.Resource.ServiceNamespaceKey = fmt.Sprintf("RoadRunner-%s", uuid.NewString())
-	}
+	envAttrs := resource.Environment()
+	fillValue(&c.Resource.ServiceNameKey, c.ServiceName, envAttrs, semconv.ServiceNameKey, "RoadRunner")
+	fillValue(&c.Resource.ServiceVersionKey, c.ServiceVersion, envAttrs, semconv.ServiceVersionKey, "1.0.0")
+	fillValue(&c.Resource.ServiceInstanceIDKey, "", envAttrs, semconv.ServiceInstanceIDKey, uuid.NewString())
+	fillValue(&c.Resource.ServiceNamespaceKey, "", envAttrs, semconv.ServiceNamespaceKey, fmt.Sprintf("RoadRunner-%s", uuid.NewString()))
 }
 
 func setClientFromEnv(client *Client, log *zap.Logger) {
@@ -138,4 +117,21 @@ func setClientFromEnv(client *Client, log *zap.Logger) {
 	default:
 		log.Warn("unknown exporter protocol", zap.String("env.name", exporterEnv), zap.String("env.value", exporterVal))
 	}
+}
+
+func fillValue(target *string, fromConf string, fromResource *resource.Resource, fromResourceKey attribute.Key, fromDefault string) {
+	if *target != "" {
+		return
+	}
+	if fromConf != "" {
+		*target = fromConf
+		return
+	}
+	if resValue, haveValue := fromResource.Set().Value(fromResourceKey); haveValue {
+		if resStr := resValue.AsString(); resStr != "" {
+			*target = resStr
+			return
+		}
+	}
+	*target = fromDefault
 }
