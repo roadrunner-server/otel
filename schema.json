@@ -28,7 +28,7 @@
         "service_namespace": {
           "type": "string",
           "description": "The namespace of the service.",
-          "default": "RoadRunner-<uuid>",
+          "default": "<service_name>-<uuid>",
           "minLength": 1
         },
         "service_instance_id": {
