@@ -1,0 +1,109 @@
+{
+  "$id": "https://raw.githubusercontent.com/roadrunner-server/otel/refs/heads/master/schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "All the valid configuration parameters for the OpenTelemetry plugin for RoadRunner.",
+  "type": "object",
+  "title": "roadrunner-otel",
+  "additionalProperties": false,
+  "required": [
+    "resource"
+  ],
+  "properties": {
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "service_name": {
+          "description": "The name of the service.",
+          "type": "string",
+          "default": "RoadRunner",
+          "minLength": 1
+        },
+        "service_version": {
+          "type": "string",
+          "description": "The version of the service.",
+          "default": "1.0.0",
+          "minLength": 1
+        },
+        "service_namespace": {
+          "type": "string",
+          "description": "The namespace of the service.",
+          "default": "RoadRunner-<uuid>",
+          "minLength": 1
+        },
+        "service_instance_id": {
+          "type": "string",
+          "description": "The service instance ID. If not provided or empty, a UUID is generated.",
+          "minLength": 1,
+          "default": "<uuid>"
+        }
+      }
+    },
+    "insecure": {
+      "description": "Use insecure endpoint",
+      "type": "boolean",
+      "default": false
+    },
+    "compress": {
+      "description": "Whether to use gzip compressor.",
+      "type": "boolean",
+      "default": false
+    },
+    "exporter": {
+      "description": "Provides functionality to emit telemetry to consumers.",
+      "type": "string",
+      "default": "otlp",
+      "enum": [
+        "zipkin",
+        "stdout",
+        "stderr",
+        "otlp",
+        "jaeger",
+        "jaeger_agent"
+      ]
+    },
+    "custom_url": {
+      "description": "Overrides the default URL of the HTTP client, if provided.",
+      "type": "string",
+      "minLength": 1
+    },
+    "endpoint": {
+      "description": "The endpoint of the consumer. Uses the OTEL default if not provided.",
+      "type": "string",
+      "default": "127.0.0.1:4318",
+      "minLength": 1
+    },
+    "client": {
+      "description": "Client to send the spans. Defaults to http if invalid or empty.",
+      "type": "string",
+      "enum": [
+        "http",
+        "grpc"
+      ]
+    },
+    "service_name": {
+      "description": "User's service name. **Deprecated**: Use resource.service_name instead.",
+      "type": "string",
+      "default": "RoadRunner",
+      "deprecated": true
+    },
+    "service_version": {
+      "description": "User's service version. **Deprecated**: Use resource.service_version instead.",
+      "type": "string",
+      "default": "1.0.0",
+      "deprecated": true
+    },
+    "headers": {
+      "description": "User defined headers for the OTLP protocol.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z0-9._-]+$": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
