@@ -94,7 +94,7 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	fillValue(&c.Resource.ServiceNameKey, c.ServiceName, envAttrs, semconv.ServiceNameKey, "RoadRunner")
 	fillValue(&c.Resource.ServiceVersionKey, c.ServiceVersion, envAttrs, semconv.ServiceVersionKey, "1.0.0")
 	fillValue(&c.Resource.ServiceInstanceIDKey, "", envAttrs, semconv.ServiceInstanceIDKey, uuid.NewString())
-	fillValue(&c.Resource.ServiceNamespaceKey, "", envAttrs, semconv.ServiceNamespaceKey, fmt.Sprintf("RoadRunner-%s", uuid.NewString()))
+	fillValue(&c.Resource.ServiceNamespaceKey, "", envAttrs, semconv.ServiceNamespaceKey, fmt.Sprintf("%s-%s", c.Resource.ServiceNameKey, uuid.NewString()))
 }
 
 func setClientFromEnv(client *Client, log *zap.Logger) {
