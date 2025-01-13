@@ -21,7 +21,7 @@ require (
 	go.temporal.io/sdk v1.31.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.69.2
+	google.golang.org/grpc v1.69.4
 )
 
 require (
