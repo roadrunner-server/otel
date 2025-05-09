@@ -66,6 +66,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/roadrunner-server/context v1.0.2 h1:MSK6mjG2KsFKS1IoieMrY9Ia7SGxDGh/tagpBQxi1SE=
 github.com/roadrunner-server/context v1.0.2/go.mod h1:7d/DqP/2k9wLrop3AdC0gTilEeCvkrwBm4CVvAdkZR0=
+github.com/roadrunner-server/context v1.1.0 h1:isgYCesTlmA/yM9SwF5npTGSaLRcaJcTQ95IPi+2pNQ=
+github.com/roadrunner-server/context v1.1.0/go.mod h1:nc2RUiN5nQgQUHZ4bf+XOmkWQ8GGFA7bYBtF76aFKDY=
 github.com/roadrunner-server/errors v1.4.1 h1:LKNeaCGiwd3t8IaL840ZNF3UA9yDQlpvHnKddnh0YRQ=
 github.com/roadrunner-server/errors v1.4.1/go.mod h1:qeffnIKG0e4j1dzGpa+OGY5VKSfMphizvqWIw8s2lAo=
 github.com/robfig/cron v1.2.0 h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=
