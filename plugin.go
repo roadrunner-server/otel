@@ -91,6 +91,9 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		if err != nil {
 			return err
 		}
+		defer func() {
+            _ = f.Close()
+        }()
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(f))
 		if err != nil {
 			return err
