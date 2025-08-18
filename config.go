@@ -18,6 +18,7 @@ const (
 	jaegerExp Exporter = "jaeger"
 	stdout    Exporter = "stdout"
 	stderr    Exporter = "stderr"
+	file      Exporter = "file"
 	otlp      Exporter = "otlp"
 )
 
