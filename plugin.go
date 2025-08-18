@@ -87,13 +87,13 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 			return err
 		}
 	case file:
+		if p.cfg.Endpoint == "" {
+			return errors.Errorf("endpoint is required for file exporter")
+		}
 		f, err := os.Create(p.cfg.Endpoint)
 		if err != nil {
 			return err
 		}
-		defer func() {
-            _ = f.Close()
-        }()
 		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint(), stdouttrace.WithWriter(f))
 		if err != nil {
 			return err
