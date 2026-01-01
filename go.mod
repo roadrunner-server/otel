@@ -6,7 +6,7 @@ toolchain go1.25.5
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/roadrunner-server/context v1.1.0
+	github.com/roadrunner-server/context v1.2.0
 	github.com/roadrunner-server/errors v1.4.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.39.0
@@ -35,7 +35,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.4 // indirect
 	github.com/nexus-rpc/sdk-go v0.5.1 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
