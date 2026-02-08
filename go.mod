@@ -2,7 +2,7 @@ module github.com/roadrunner-server/otel/v5
 
 go 1.25
 
-toolchain go1.25.6
+toolchain go1.25.7
 
 require (
 	github.com/google/uuid v1.6.0
@@ -49,7 +49,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260203192932-546029d2fa20 // indirect
