@@ -14,11 +14,10 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.temporal.io/sdk/interceptor"
 	"go.uber.org/zap"
 
@@ -87,10 +86,7 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 			return err
 		}
 	case zipkinExp:
-		exporter, err = zipkin.New(p.cfg.Endpoint)
-		if err != nil {
-			return err
-		}
+		return errors.Errorf("zipkin exporter is deprecated, use OTLP instead")
 	case otlp:
 		switch p.cfg.Client {
 		case httpClient:

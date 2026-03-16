@@ -74,6 +74,9 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	if c.Exporter == jaegerExp {
 		log.Warn("jaeger exporter is deprecated, use OTLP instead: https://github.com/roadrunner-server/roadrunner/issues/1699")
 	}
+	if c.Exporter == zipkinExp {
+		log.Warn("zipkin exporter is deprecated and will be removed in a future version, use OTLP instead: https://opentelemetry.io/blog/2025/deprecating-zipkin-exporters/")
+	}
 
 	switch c.Client {
 	case grpcClient, httpClient:
