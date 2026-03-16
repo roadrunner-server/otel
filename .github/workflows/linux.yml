@@ -3,7 +3,7 @@ name: otel
 on: [push, pull_request]
 
 jobs:
-  otel_plugin:
+  otel_test:
     name: Build (Go ${{ matrix.go }}, OS ${{matrix.os}})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -14,15 +14,15 @@ jobs:
         os: ["ubuntu-latest"]
     steps:
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v4 # action page: <https://github.com/actions/setup-go>
+        uses: actions/setup-go@v6 # action page: <https://github.com/actions/setup-go>
         with:
           go-version: ${{ matrix.go }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Init Go modules Cache # Docs: <https://git.io/JfAKn#go---modules>
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -32,4 +32,44 @@ jobs:
         run: go mod download
 
       - name: Run golang tests with coverage
-        run: make test
+        run: |
+          mkdir ./coverage-ci
+          go test -v -race -cover -tags=debug -failfast -coverpkg=./... -coverprofile=./coverage-ci/summary.out -covermode=atomic ./...
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-otel
+          path: ./coverage-ci
+
+  codecov:
+    name: Upload codecov
+    runs-on: ubuntu-latest
+    needs:
+      - otel_test
+    timeout-minutes: 60
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+      - name: Download code coverage results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-*
+          path: coverage
+          merge-multiple: true
+      - run: |
+          echo 'mode: atomic' > summary.txt
+          tail -q -n +2 coverage/*.out >> summary.txt
+          awk '
+            NR == 1 { print; next }
+            /^github\.com\/roadrunner-server\/otel\/v5\// {
+              sub(/^github\.com\/roadrunner-server\/otel\/v5\//, "", $0)
+              print
+            }
+          ' summary.txt > summary.filtered.txt
+          mv summary.filtered.txt summary.txt
+      - name: upload to codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: summary.txt
+          fail_ci_if_error: false
