@@ -2,13 +2,13 @@ package otel
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
-	"go.uber.org/zap"
 )
 
 type Exporter string
@@ -60,7 +60,7 @@ type Config struct {
 	Headers map[string]string `mapstructure:"headers"`
 }
 
-func (c *Config) InitDefault(log *zap.Logger) {
+func (c *Config) InitDefault(log *slog.Logger) {
 	if c.Exporter == "" {
 		c.Exporter = otlp
 	}
@@ -85,7 +85,7 @@ func (c *Config) InitDefault(log *zap.Logger) {
 		c.Client = httpClient
 		setClientFromEnv(&c.Client, log)
 	default:
-		log.Warn("unknown exporter client", zap.String("client", string(c.Client)))
+		log.Warn("unknown exporter client", "client", string(c.Client))
 		c.Client = httpClient
 	}
 
@@ -100,7 +100,7 @@ func (c *Config) InitDefault(log *zap.Logger) {
 	fillValue(&c.Resource.ServiceNamespaceKey, "", envAttrs, semconv.ServiceNamespaceKey, fmt.Sprintf("%s-%s", c.Resource.ServiceNameKey, uuid.NewString()))
 }
 
-func setClientFromEnv(client *Client, log *zap.Logger) {
+func setClientFromEnv(client *Client, log *slog.Logger) {
 	// https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
 	exporterEnv := "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"
 	exporterVal := os.Getenv(exporterEnv)
@@ -116,9 +116,9 @@ func setClientFromEnv(client *Client, log *zap.Logger) {
 	case "http/protobuf":
 		*client = httpClient
 	case "http/json":
-		log.Warn("unsupported exporter protocol", zap.String("env.name", exporterEnv), zap.String("env.value", exporterVal))
+		log.Warn("unsupported exporter protocol", "env.name", exporterEnv, "env.value", exporterVal)
 	default:
-		log.Warn("unknown exporter protocol", zap.String("env.name", exporterEnv), zap.String("env.value", exporterVal))
+		log.Warn("unknown exporter protocol", "env.name", exporterEnv, "env.value", exporterVal)
 	}
 }
 

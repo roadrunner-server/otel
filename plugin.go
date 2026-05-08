@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	"runtime"
@@ -19,7 +20,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.temporal.io/sdk/interceptor"
-	"go.uber.org/zap"
 
 	// gzip grpc compressor
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -30,7 +30,7 @@ const (
 )
 
 type Logger interface {
-	NamedLogger(name string) *zap.Logger
+	NamedLogger(name string) *slog.Logger
 }
 
 type Configurer interface {
@@ -44,7 +44,7 @@ type Configurer interface {
 
 type Plugin struct {
 	cfg                 *Config
-	log                 *zap.Logger
+	log                 *slog.Logger
 	tracer              *sdktrace.TracerProvider
 	propagators         propagation.TextMapPropagator
 	httpMiddleware      httpMiddleware
