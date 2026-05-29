@@ -8,21 +8,11 @@ import (
 	"go.temporal.io/sdk/interceptor"
 )
 
-// type alias for the interceptors
-type temporalInterceptor func() interceptor.WorkerInterceptor
-
-func TemporalHandler(interceptor temporalInterceptor) interceptor.WorkerInterceptor {
-	return interceptor()
-}
-
-func temporalWrapper(prop propagation.TextMapPropagator, tr trace.TracerProvider) temporalInterceptor {
-	return func() interceptor.WorkerInterceptor {
-		traceInterceptor, _ := opentelemetry.NewTracingInterceptor(
-			opentelemetry.TracerOptions{
-				Tracer:            tr.Tracer("WorkflowWorker"),
-				TextMapPropagator: prop,
-				SpanContextKey:    rrcontext.OtelTracerNameKey,
-			})
-		return traceInterceptor
-	}
+func newTemporalInterceptor(prop propagation.TextMapPropagator, tr trace.TracerProvider) (interceptor.WorkerInterceptor, error) {
+	return opentelemetry.NewTracingInterceptor(
+		opentelemetry.TracerOptions{
+			Tracer:            tr.Tracer("WorkflowWorker"),
+			TextMapPropagator: prop,
+			SpanContextKey:    rrcontext.OtelTracerNameKey,
+		})
 }
