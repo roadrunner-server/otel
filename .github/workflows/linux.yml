@@ -25,5 +25,20 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
       - name: Install Go dependencies
         run: go mod download
+      - name: Install Temporal CLI (dev server)
+        run: |
+          curl -sSf https://temporal.download/cli.sh | sh
+          echo "$HOME/.temporalio/bin" >> "$GITHUB_PATH"
       - name: Run golang tests with coverage
-        run: make test
+        env:
+          TEMPORAL_ADDRESS: 127.0.0.1:7233
+        run: |
+          temporal server start-dev --headless --ip 127.0.0.1 --port 7233 --log-level error &
+          SERVER_PID=$!
+          # wait for the Temporal frontend to accept connections
+          for i in $(seq 1 60); do
+            temporal operator cluster health --address 127.0.0.1:7233 >/dev/null 2>&1 && break
+            sleep 0.5
+          done
+          make test
+          kill "$SERVER_PID" || true
