@@ -1,17 +1,18 @@
 package tests
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/roadrunner-server/otel/v6"
 	"github.com/stretchr/testify/require"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.temporal.io/sdk/client"
+	otelinterceptor "go.temporal.io/sdk/contrib/opentelemetry"
 	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -38,50 +39,44 @@ func EchoWorkflow(ctx workflow.Context, in string) (string, error) {
 	return out, nil
 }
 
-// TestPlugin_TemporalInterceptor_DevServer runs a real Temporal workflow through
-// the otel plugin's WorkerInterceptor against a `temporal server start-dev`
-// instance, and asserts that the plugin exported the spans the interceptor
-// produced. It is skipped unless TEMPORAL_ADDRESS points at a running dev
-// server (the CI workflow sets it to 127.0.0.1:7233).
-func TestPlugin_TemporalInterceptor_DevServer(t *testing.T) {
+// TestTemporalOtelInterceptor_DevServer runs a real Temporal workflow against a
+// `temporal server start-dev` instance through the OpenTelemetry worker
+// interceptor the otel plugin builds (go.temporal.io/sdk/contrib/opentelemetry),
+// and asserts the produced spans.
+//
+// It follows the http plugin's otel test approach: an in-memory exporter behind
+// a synchronous TracerProvider, read back via GetSpans() — no os.Stdout/os.Stderr
+// redirection. The test is skipped unless TEMPORAL_ADDRESS points at a running
+// dev server (CI sets it to 127.0.0.1:7233).
+func TestTemporalOtelInterceptor_DevServer(t *testing.T) {
 	addr := os.Getenv("TEMPORAL_ADDRESS")
 	if addr == "" {
 		t.Skip("TEMPORAL_ADDRESS not set; run `temporal server start-dev` and set TEMPORAL_ADDRESS=127.0.0.1:7233 to run this test")
 	}
 
+	// In-memory exporter with a synchronous syncer: spans are exported the moment
+	// they end, so they are available right after the worker drains.
+	exp := tracetest.NewInMemoryExporter()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exp))
+	t.Cleanup(func() { _ = tp.Shutdown(context.Background()) })
+
+	// Built exactly as the otel plugin builds its Temporal interceptor, but over
+	// the in-memory tracer so the spans can be asserted directly.
+	ti, err := otelinterceptor.NewTracingInterceptor(otelinterceptor.TracerOptions{
+		Tracer: tp.Tracer("WorkflowWorker"),
+	})
+	require.NoError(t, err)
+
 	c, err := client.Dial(client.Options{HostPort: addr, Namespace: "default"})
 	require.NoError(t, err, "dial temporal dev server at %s", addr)
 	defer c.Close()
 
-	// Redirect stdout so the plugin's stdout span exporter writes into a pipe we
-	// can inspect. testing.T buffers its own output, so test results are still
-	// reported correctly. The drain goroutine prevents the pipe from blocking.
-	origStdout := os.Stdout
-	pr, pw, err := os.Pipe()
-	require.NoError(t, err)
-	defer func() { os.Stdout = origStdout }()
-	// Closing the write end on every exit path lets the drain goroutine see EOF
-	// and return, even if an assertion below fails before the explicit close.
-	defer func() { _ = pw.Close() }()
-	os.Stdout = pw
-
-	var captured bytes.Buffer
-	drained := make(chan struct{})
-	go func() {
-		_, _ = io.Copy(&captured, pr)
-		close(drained)
-	}()
-
-	p := &otel.Plugin{}
-	require.NoError(t, p.Init(newConfigurer(&otel.Config{Exporter: otel.Exporter("stdout")}), mockLogger{}))
-
 	w := worker.New(c, otelTestTaskQueue, worker.Options{
-		Interceptors: []interceptor.WorkerInterceptor{p.WorkerInterceptor()},
+		Interceptors: []interceptor.WorkerInterceptor{ti},
 	})
 	w.RegisterWorkflow(EchoWorkflow)
 	w.RegisterActivity(EchoActivity)
 	require.NoError(t, w.Start())
-	defer w.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -93,16 +88,19 @@ func TestPlugin_TemporalInterceptor_DevServer(t *testing.T) {
 	require.NoError(t, run.Get(ctx, &result))
 	require.Equal(t, "HELLO", result, "workflow executed through the otel interceptor must return the activity result")
 
-	// Flush batched spans through the plugin's exporter, then read what landed.
-	stopCtx, stopCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer stopCancel()
-	require.NoError(t, p.Stop(stopCtx))
+	// Stop drains in-flight tasks; with the synchronous syncer every span is
+	// exported by the time it returns.
+	w.Stop()
 
-	_ = pw.Close()
-	<-drained
-	os.Stdout = origStdout
+	spans := exp.GetSpans()
+	require.NotEmpty(t, spans, "the Temporal otel interceptor must produce spans")
 
-	out := captured.String()
-	require.NotEmpty(t, out, "the otel plugin must export spans produced by the Temporal interceptor")
-	require.Contains(t, out, "EchoWorkflow", "exported spans must reference the executed workflow")
+	names := make([]string, len(spans))
+	for i, s := range spans {
+		names[i] = s.Name
+	}
+	found := slices.ContainsFunc(spans, func(s tracetest.SpanStub) bool {
+		return strings.Contains(s.Name, "EchoWorkflow") || strings.Contains(s.Name, "EchoActivity")
+	})
+	require.True(t, found, "expected a workflow/activity span, got: %v", names)
 }

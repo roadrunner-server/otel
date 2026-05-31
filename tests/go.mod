@@ -5,7 +5,9 @@ go 1.26.3
 require (
 	github.com/roadrunner-server/otel/v6 v6.0.0
 	github.com/stretchr/testify v1.11.1
+	go.opentelemetry.io/otel/sdk v1.44.0
 	go.temporal.io/sdk v1.44.1
+	go.temporal.io/sdk/contrib/opentelemetry v0.7.0
 )
 
 require (
@@ -36,11 +38,9 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.44.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.temporal.io/api v1.62.12 // indirect
-	go.temporal.io/sdk/contrib/opentelemetry v0.7.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
