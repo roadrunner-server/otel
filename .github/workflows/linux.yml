@@ -25,8 +25,10 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
       - name: Install Go dependencies
         run: go mod download
-      - name: Install Temporal CLI
-        uses: temporalio/setup-temporal@v0.1.0
+      - name: Install Temporal CLI (dev server)
+        run: |
+          curl -sSf https://temporal.download/cli.sh | sh
+          echo "$HOME/.temporalio/bin" >> "$GITHUB_PATH"
       - name: Create coverage folder
         run: mkdir ./tests/coverage-ci
       - name: Run golang tests with coverage
