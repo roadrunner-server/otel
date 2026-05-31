@@ -60,6 +60,9 @@ func TestPlugin_TemporalInterceptor_DevServer(t *testing.T) {
 	pr, pw, err := os.Pipe()
 	require.NoError(t, err)
 	defer func() { os.Stdout = origStdout }()
+	// Closing the write end on every exit path lets the drain goroutine see EOF
+	// and return, even if an assertion below fails before the explicit close.
+	defer func() { _ = pw.Close() }()
 	os.Stdout = pw
 
 	var captured bytes.Buffer
