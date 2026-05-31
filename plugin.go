@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
 	"go.temporal.io/sdk/interceptor"
 
 	// gzip grpc compressor
@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	pluginName string = "otel"
+	pluginName = "otel"
 )
 
 type Logger interface {
@@ -48,7 +48,7 @@ type Plugin struct {
 	tracer              *sdktrace.TracerProvider
 	propagators         propagation.TextMapPropagator
 	httpMiddleware      httpMiddleware
-	temporalInterceptor temporalInterceptor
+	temporalInterceptor interceptor.WorkerInterceptor
 }
 
 func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
@@ -108,29 +108,32 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error { //nolint:gocyclo
 		return errors.Errorf("unknown exporter: %s", p.cfg.Exporter)
 	}
 
-	resource, err := newResource(p.cfg.Resource, cfg.RRVersion())
+	res, err := newResource(p.cfg.Resource, cfg.RRVersion())
 	if err != nil {
 		return errors.E(op, err)
 	}
 	p.tracer = sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource),
+		sdktrace.WithResource(res),
 	)
 
 	p.propagators = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 	p.httpMiddleware = httpWrapper(p.propagators, p.tracer, p.cfg.ServiceName)
-	p.temporalInterceptor = temporalWrapper(p.propagators, p.tracer)
+	p.temporalInterceptor, err = newTemporalInterceptor(p.propagators, p.tracer)
+	if err != nil {
+		return errors.E(op, err)
+	}
 	otel.SetTracerProvider(p.tracer)
 
 	return nil
 }
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
-	return HTTPHandler(next, p.httpMiddleware)
+	return p.httpMiddleware(next)
 }
 
 func (p *Plugin) WorkerInterceptor() interceptor.WorkerInterceptor {
-	return TemporalHandler(p.temporalInterceptor)
+	return p.temporalInterceptor
 }
 
 func (p *Plugin) Serve() chan error {
@@ -139,18 +142,11 @@ func (p *Plugin) Serve() chan error {
 
 func (p *Plugin) Stop(ctx context.Context) error {
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#forceflush
-	err := p.tracer.ForceFlush(ctx)
-	if err != nil {
+	if err := p.tracer.ForceFlush(ctx); err != nil {
 		return err
 	}
-
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#shutdown
-	err = p.tracer.Shutdown(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return p.tracer.Shutdown(ctx)
 }
 
 func (p *Plugin) Tracer() *sdktrace.TracerProvider {
@@ -180,7 +176,7 @@ func newResource(res *Resource, rrVersion string) (*resource.Resource, error) {
 }
 
 func grpcOptions(cfg *Config) []otlptracegrpc.Option {
-	options := make([]otlptracegrpc.Option, 0, 5)
+	var options []otlptracegrpc.Option
 	if cfg.Insecure {
 		options = append(options, otlptracegrpc.WithInsecure())
 	}
@@ -201,7 +197,7 @@ func grpcOptions(cfg *Config) []otlptracegrpc.Option {
 }
 
 func httpOptions(cfg *Config) []otlptracehttp.Option {
-	options := make([]otlptracehttp.Option, 0, 5)
+	var options []otlptracehttp.Option
 	if cfg.Insecure {
 		options = append(options, otlptracehttp.WithInsecure())
 	}
