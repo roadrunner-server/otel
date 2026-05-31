@@ -5,6 +5,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -78,6 +79,13 @@ func TestTemporalOtelInterceptor_DevServer(t *testing.T) {
 	w.RegisterActivity(EchoActivity)
 	require.NoError(t, w.Start())
 
+	// Stop the worker exactly once on every exit path. Draining in-flight tasks
+	// flushes all spans through the synchronous exporter before GetSpans; the
+	// t.Cleanup guard also covers assertion failures before the explicit stop.
+	var stopOnce sync.Once
+	stop := func() { stopOnce.Do(w.Stop) }
+	t.Cleanup(stop)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
@@ -88,9 +96,8 @@ func TestTemporalOtelInterceptor_DevServer(t *testing.T) {
 	require.NoError(t, run.Get(ctx, &result))
 	require.Equal(t, "HELLO", result, "workflow executed through the otel interceptor must return the activity result")
 
-	// Stop drains in-flight tasks; with the synchronous syncer every span is
-	// exported by the time it returns.
-	w.Stop()
+	// Drain now so the synchronous exporter has flushed all worker-side spans.
+	stop()
 
 	spans := exp.GetSpans()
 	require.NotEmpty(t, spans, "the Temporal otel interceptor must produce spans")
