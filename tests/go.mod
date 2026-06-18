@@ -6,7 +6,7 @@ require (
 	github.com/roadrunner-server/otel/v6 v6.0.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel/sdk v1.44.0
-	go.temporal.io/sdk v1.44.1
+	go.temporal.io/sdk v1.45.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.7.0
 )
 
