@@ -58,26 +58,59 @@ func TestConfig_ClientSelectionFromEnv(t *testing.T) {
 	}
 }
 
-// TestConfig_ResourceValuePrecedence verifies the value precedence in the
-// resource attributes: an explicit Resource value wins over the deprecated
-// top-level field, which in turn wins over the built-in default.
 func TestConfig_ResourceValuePrecedence(t *testing.T) {
-	// Deprecated top-level fields flow into the Resource when nothing else set them.
-	deprecated := &otel.Config{
-		ServiceName:    "from-deprecated-name",
-		ServiceVersion: "9.9.9",
+	cases := []struct {
+		name        string
+		cfg         otel.Config
+		env         string
+		wantName    string
+		wantVersion string
+	}{
+		{
+			name: "resource overrides deprecated fields and environment",
+			cfg: otel.Config{
+				ServiceName:    "deprecated-name",
+				ServiceVersion: "9.9.9",
+				Resource:       &otel.Resource{ServiceNameKey: "explicit-name", ServiceVersionKey: "2.0.0"},
+			},
+			env:         "service.name=env-name,service.version=3.0.0",
+			wantName:    "explicit-name",
+			wantVersion: "2.0.0",
+		},
+		{
+			name:        "deprecated fields override environment",
+			cfg:         otel.Config{ServiceName: "deprecated-name", ServiceVersion: "9.9.9"},
+			env:         "service.name=env-name,service.version=3.0.0",
+			wantName:    "deprecated-name",
+			wantVersion: "9.9.9",
+		},
+		{
+			name:        "environment supplies missing fields",
+			env:         "service.name=env-name,service.version=3.0.0",
+			wantName:    "env-name",
+			wantVersion: "3.0.0",
+		},
+		{
+			name:        "empty environment attributes use defaults",
+			env:         "service.name=,service.version=",
+			wantName:    "RoadRunner",
+			wantVersion: "1.0.0",
+		},
+		{
+			name:        "missing version uses default",
+			cfg:         otel.Config{ServiceName: "ignored-deprecated", Resource: &otel.Resource{ServiceNameKey: "explicit-name"}},
+			wantName:    "explicit-name",
+			wantVersion: "1.0.0",
+		},
 	}
-	deprecated.InitDefault(discardLogger())
-	require.Equal(t, "from-deprecated-name", deprecated.Resource.ServiceNameKey)
-	require.Equal(t, "9.9.9", deprecated.Resource.ServiceVersionKey)
 
-	// An explicit Resource value takes precedence over the deprecated field,
-	// while an unset sibling still falls back to the default.
-	explicit := &otel.Config{
-		ServiceName: "ignored-deprecated",
-		Resource:    &otel.Resource{ServiceNameKey: "explicit-name"},
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("OTEL_SERVICE_NAME", "")
+			t.Setenv("OTEL_RESOURCE_ATTRIBUTES", tc.env)
+			tc.cfg.InitDefault(discardLogger())
+			require.Equal(t, tc.wantName, tc.cfg.Resource.ServiceNameKey)
+			require.Equal(t, tc.wantVersion, tc.cfg.Resource.ServiceVersionKey)
+		})
 	}
-	explicit.InitDefault(discardLogger())
-	require.Equal(t, "explicit-name", explicit.Resource.ServiceNameKey, "explicit resource value must win")
-	require.Equal(t, "1.0.0", explicit.Resource.ServiceVersionKey, "unset version must fall back to default")
 }

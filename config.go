@@ -1,6 +1,7 @@
 package otel
 
 import (
+	"cmp"
 	"fmt"
 	"log/slog"
 	"os"
@@ -123,18 +124,6 @@ func setClientFromEnv(client *Client, log *slog.Logger) {
 }
 
 func fillValue(target *string, fromConf string, fromResource *resource.Resource, fromResourceKey attribute.Key, fromDefault string) {
-	if *target != "" {
-		return
-	}
-	if fromConf != "" {
-		*target = fromConf
-		return
-	}
-	if resValue, haveValue := fromResource.Set().Value(fromResourceKey); haveValue {
-		if resStr := resValue.AsString(); resStr != "" {
-			*target = resStr
-			return
-		}
-	}
-	*target = fromDefault
+	resValue, _ := fromResource.Set().Value(fromResourceKey)
+	*target = cmp.Or(*target, fromConf, resValue.AsString(), fromDefault)
 }
