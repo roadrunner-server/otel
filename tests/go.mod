@@ -27,7 +27,7 @@ require (
 	github.com/nexus-rpc/nexus-proto-annotations v0.1.0 // indirect
 	github.com/nexus-rpc/sdk-go v0.7.0 // indirect
 	github.com/roadrunner-server/context v1.4.0 // indirect
-	github.com/roadrunner-server/errors v1.5.0 // indirect
+	github.com/roadrunner-server/errors v1.6.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
