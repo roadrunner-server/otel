@@ -31,8 +31,8 @@ github.com/nexus-rpc/nexus-proto-annotations v0.1.0 h1:2fELd+9sqUtNu6Fg//pw8YFsx
 github.com/nexus-rpc/nexus-proto-annotations v0.1.0/go.mod h1:n3UjF1bPCW8llR8tHvbxJ+27yPWrhpo8w/Yg1IOuY0Y=
 github.com/nexus-rpc/sdk-go v0.7.0 h1:38NrfY5rLnZAiMMs2ZfCKI/CSDzdfJG+27iAgfA8bUI=
 github.com/nexus-rpc/sdk-go v0.7.0/go.mod h1:FHdPfVQwRuJFZFTF0Y2GOAxCrbIBNrcPna9slkGKPYk=
-github.com/roadrunner-server/context v1.3.0 h1:iyTXVORhPU2/26z7kdzEaggwG5P8yhIKUDLiePjylFQ=
-github.com/roadrunner-server/context v1.3.0/go.mod h1:KPAzAlnErXekQazW9t4h55U1S42Q2bk0WCaPQrezJw4=
+github.com/roadrunner-server/context v1.4.0 h1:ArrbMSoYexbmNGvgr5haamuIXwtALugqDm/OSHsy0ww=
+github.com/roadrunner-server/context v1.4.0/go.mod h1:ilPSTVBIuV4cRxBFd84x2UKQcZwctxs3IKi8PAnjhRY=
 github.com/roadrunner-server/errors v1.5.0 h1:unG7LKIZrSzkCCF3YLRLA5VyqE0KKomofXVJUXJe00g=
 github.com/roadrunner-server/errors v1.5.0/go.mod h1:g9fo/T2C13cWRDR9PW1r0ZAOSQfNhWAZawyfkGiaHuI=
 github.com/robfig/cron v1.2.0 h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=
