@@ -2,7 +2,7 @@ module github.com/roadrunner-server/otel/v6
 
 go 1.27
 
-toolchain go1.27.2
+toolchain go1.27.3
 
 require (
 	github.com/google/uuid v1.6.0
@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0
 	go.temporal.io/sdk v1.50.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.8.1
-	google.golang.org/grpc v1.84.0
+	google.golang.org/grpc v1.85.0
 )
 
 require (
@@ -32,7 +32,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.4 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.32.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.33.0 // indirect
 	github.com/nexus-rpc/nexus-proto-annotations v0.1.0 // indirect
 	github.com/nexus-rpc/sdk-go v0.7.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
@@ -43,8 +43,8 @@ require (
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
 	go.temporal.io/api v1.64.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
